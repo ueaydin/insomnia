@@ -122,8 +122,11 @@ button,input{font-family:inherit}
 .uyari .sayi{font-size:96px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
 .uyari .metin{font-size:20px;font-weight:700}
 .uyari .not{color:#b8b8b8}
-.uyari button{margin-top:12px;height:44px;padding:0 44px;border-radius:3px;border:1px solid #e8e8e8;background:#e8e8e8;color:#1b1b1d;font-size:16px;font-weight:700;cursor:pointer}
+.uyari .dugmeler{display:flex;gap:12px;margin-top:12px}
+.uyari button{height:44px;padding:0 36px;border-radius:3px;border:1px solid #e8e8e8;background:#e8e8e8;color:#1b1b1d;font-size:16px;font-weight:700;cursor:pointer}
 .uyari button:hover{background:#fff}
+.uyari button.simdi{background:transparent;color:#e8e8e8;border-color:#777;font-weight:600}
+.uyari button.simdi:hover{background:#333336}
 @media (prefers-reduced-motion:reduce){.onay input,.onay input::after{transition:none}}
 </style>
 </head>
@@ -207,7 +210,7 @@ button,input{font-family:inherit}
 <div class="sayi" id="uyariSayi"></div>
 <div class="metin" id="uyariMetin"></div>
 <div class="not" data-t="warn_hint"></div>
-<button id="uyariVazgec" data-t="warn_cancel"></button>
+<div class="dugmeler"><button id="uyariVazgec" data-t="warn_cancel"></button><button id="uyariSimdi" class="simdi" data-t="warn_now"></button></div>
 </div>
 </div>
 
@@ -478,6 +481,7 @@ function kur() {
     (S && S.screen_in > 0 ? api.cancel_screen_off() : api.screen_off()).then(durumAl);
   });
   $('uyariVazgec').addEventListener('click', function () { api.cancel_action().then(durumAl); });
+  $('uyariSimdi').addEventListener('click', function () { api.act_now().then(durumAl); });
   $('kucult').addEventListener('click', function () { api.minimize(); });
   $('kapat').addEventListener('click', function () { api.hide(); });
   $('ayarD').addEventListener('click', function () { paneliAc($('panel').hidden); });

@@ -18,7 +18,7 @@ import time
 from datetime import datetime, timedelta
 
 from .power import ACTIONS
-from .settings import valid_minutes
+from .settings import MAX_MINUTES, valid_minutes
 
 IDLE = "idle"
 RUNNING = "running"
@@ -31,6 +31,7 @@ class Engine(threading.Thread):
     SCREEN_DELAY = 10  # ekranı kapatmadan önceki geri sayım
     SUSPEND_GAP = 30  # bundan uzun boşluk = bilgisayar uyudu
     ENDING_SECONDS = 300  # son 5 dakika uyarı rengi
+    MIN_LEFT = 60  # süre çıkarılırken kalan süre bunun altına inemez
 
     def __init__(self, power, clock=time.monotonic, wall=datetime.now, on_change=None, on_attention=None):
         super().__init__(name="insomnia-engine", daemon=True)
@@ -72,6 +73,18 @@ class Engine(threading.Thread):
 
     def cancel_action(self):
         return self._call(self._do_cancel_action)
+
+    def act_now(self):
+        """Uyarı sürerken: geri sayımı beklemeden bitiş işlemini yapar."""
+        return self._call(self._do_act_now)
+
+    def adjust(self, seconds):
+        """Çalışan süreli oturuma süre ekler (eksi değer çıkarır)."""
+        return self._call(self._do_adjust, seconds)
+
+    def set_action(self, action):
+        """Çalışan süreli oturumun bitiş işlemini değiştirir."""
+        return self._call(self._do_set_action, action)
 
     def request_screen_off(self):
         return self._call(self._do_screen_off, True)
@@ -180,6 +193,37 @@ class Engine(threading.Thread):
         self._message = "cancelled"
         return {"ok": True}
 
+    def _do_act_now(self):
+        if self._phase != WARNING or self._acting:
+            return {"ok": False}
+        self._warn_deadline = self._clock()  # sıradaki denetim turunda işlem yapılır
+        return {"ok": True}
+
+    def _do_adjust(self, seconds):
+        if not isinstance(seconds, int) or isinstance(seconds, bool) or seconds == 0:
+            return {"ok": False, "error": "bad_request"}
+        if self._phase != RUNNING or self._infinite:
+            return {"ok": False, "error": "not_running"}
+        left = self._deadline - self._clock() + seconds
+        if left < self.MIN_LEFT:
+            return {"ok": False, "error": "too_short"}
+        if left > MAX_MINUTES * 60:
+            return {"ok": False, "error": "too_long"}
+        # Toplam da değişir: bitiş saati (başlangıç + toplam) doğru kalır.
+        self._deadline += seconds
+        self._total += seconds
+        return {"ok": True}
+
+    def _do_set_action(self, action):
+        if action not in ACTIONS:
+            return {"ok": False, "error": "bad_action"}
+        if self._phase != RUNNING or self._infinite:
+            return {"ok": False, "error": "not_running"}
+        if action == "hibernate" and not self._power.hibernate_available():
+            return {"ok": False, "error": "hibernate_unavailable"}
+        self._action = action
+        return {"ok": True}
+
     def _do_screen_off(self, on):
         self._screen_deadline = self._clock() + self.SCREEN_DELAY if on else None
         return {"ok": True}
@@ -261,7 +305,7 @@ class Engine(threading.Thread):
 
     def _change_key(self):
         remaining = self._remaining(self._clock())
-        key = (self._phase, self._message, self._ending(remaining), math.ceil(remaining / 60))
+        key = (self._phase, self._message, self._ending(remaining), math.ceil(remaining / 60), self._action, self._total)
         changed = key != self._last_key
         self._last_key = key
         return key, changed

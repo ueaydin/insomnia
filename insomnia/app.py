@@ -8,7 +8,7 @@ from ctypes import wintypes
 
 import webview
 
-from . import APP_NAME, __version__, i18n, settings, single_instance, startup
+from . import APP_NAME, __version__, i18n, remote, settings, single_instance, startup
 from .engine import IDLE, Engine
 from .power import Power
 from .tray import Tray
@@ -81,6 +81,10 @@ class Api:
         self._app.engine.cancel_action()
         return self._app.ui_state()
 
+    def act_now(self):
+        self._app.engine.act_now()
+        return self._app.ui_state()
+
     def screen_off(self):
         self._app.engine.request_screen_off()
         return self._app.ui_state()
@@ -115,7 +119,8 @@ class Api:
 
 
 class App:
-    def __init__(self, start_hidden: bool = False):
+    def __init__(self, start_hidden: bool = False, first_command: dict | None = None):
+        self._first_command = first_command
         self.settings = settings.load()
         i18n.set_language(self.settings["language"])
         self._visibility = self.settings["visibility"]
@@ -140,6 +145,7 @@ class App:
             on_exit=self.quit,
             is_running=lambda: self.engine.snapshot()["phase"] != IDLE,
         )
+        self.door = remote.Door(self.remote_state, self.remote_command, self.log)
 
     # ------------------------------------------------------------------ #
     #  Çalıştırma                                                         #
@@ -170,6 +176,9 @@ class App:
         self.engine.start()
         self.tray.start(visible=self._visibility != "taskbar")
         single_instance.listen(self.show_window)
+        if self._first_command:
+            self.remote_command(self._first_command)
+        self.door.start()
         try:
             webview.start(
                 gui="edgechromium",
@@ -178,11 +187,13 @@ class App:
             )
         finally:
             self._quitting = True
+            self.door.stop()
             self.engine.shutdown()
             self.tray.stop()
 
     def quit(self) -> None:
         self._quitting = True
+        self.door.stop()
         self.engine.shutdown()
         self.tray.stop()
         try:
@@ -452,6 +463,57 @@ class App:
                 if isinstance(prefs.get(source), bool):
                     self.settings[target] = prefs[source]
             settings.save(self.settings)
+
+    # ------------------------------------------------------------------ #
+    #  Kumanda kapısı (bkz. remote.py)                                    #
+    # ------------------------------------------------------------------ #
+
+    def remote_state(self) -> dict:
+        state = self.engine.snapshot()
+        state.update(
+            ok=True,
+            app=APP_NAME,
+            version=__version__,
+            lang=i18n.language(),
+            hibernate=self.power.hibernate_available(),
+            limits={"min": settings.MIN_MINUTES, "max": settings.MAX_MINUTES},
+        )
+        return state
+
+    def remote_command(self, request: dict) -> dict:
+        """Dışarıdan gelen komutu çalıştırır; yanıtta her zaman güncel durum vardır."""
+        name = request.get("komut")
+        engine = self.engine
+        if name == "start":
+            result = engine.start_session(
+                minutes=request.get("minutes"),
+                infinite=request.get("infinite", False),
+                action=request.get("action", "none"),
+                sound=self.settings["sound_enabled"],
+                monitor_off=False,
+            )
+        elif name == "stop":
+            result = engine.stop_session()
+        elif name == "cancel":
+            result = engine.cancel_action()
+        elif name == "act_now":
+            result = engine.act_now()
+        elif name == "adjust":
+            result = engine.adjust(request.get("seconds"))
+        elif name == "set_action":
+            result = engine.set_action(request.get("action"))
+        elif name == "screen_off":
+            result = engine.request_screen_off()
+        elif name == "cancel_screen_off":
+            result = engine.cancel_screen_off()
+        elif name == "show":
+            self.show_window()
+            result = {"ok": True}
+        else:
+            result = {"ok": False, "error": "unknown_command"}
+        result = dict(result or {"ok": False, "error": "timeout"})
+        result["state"] = self.remote_state()
+        return result
 
     # ------------------------------------------------------------------ #
     #  Kayıt (yalnız INSOMNIA_DEBUG=1 iken)                               #

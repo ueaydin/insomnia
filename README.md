@@ -3,7 +3,7 @@
 Bilgisayarı belirlediğin süre boyunca uyanık tutan küçük bir Windows programı.
 Süre dolunca istersen bilgisayarı kapatır, yeniden başlatır ya da hazırda bekletir.
 
-Sürüm: 1.1.0 · **Nihai sürüm**
+Sürüm: 1.2.0
 
 ## Ne yapar
 
@@ -38,6 +38,31 @@ python main.py --tray    # yalnız tepsi simgesiyle
 
 Windows 10/11 ve Microsoft Edge WebView2 gerekir (Windows 11'de hazır gelir).
 
+## Dışarıdan yönetme (kumanda kapısı)
+
+Program açıkken başka programlar onu yönetebilir. Ulanzi D200 eklentisi bunu kullanır
+(ayrı proje: `Insomnia Ulanzi`).
+
+Komut satırından:
+
+```
+Insomnia.exe --baslat 60                    # 60 dakikalık oturum (0 = süresiz); program kapalıysa tepside açar
+Insomnia.exe --baslat 60 --islem shutdown   # bitince kapat (restart, hibernate)
+Insomnia.exe --durdur
+Insomnia.exe --ekran-kapat
+```
+
+Programdan: `%LOCALAPPDATA%\Insomnia\kumanda.json` dosyasında kapı numarası (`port`) ve
+anahtar (`token`) yazar. Sunucu yalnız 127.0.0.1'i dinler; her istek anahtarı
+`X-Insomnia-Anahtar` başlığında taşımalıdır. Tarayıcıdan gelen istekler (Origin başlığı
+olanlar) reddedilir.
+
+- `GET /durum` oturum durumunu verir.
+- `POST /komut` gövdesi `{"komut": "..."}`: `start` (`minutes`, `infinite`, `action`), `stop`,
+  `cancel` (uyarıda vazgeç), `act_now` (uyarıda beklemeden yap), `adjust` (`seconds`; çalışan
+  oturuma süre ekler ya da çıkarır), `set_action` (`action`; çalışan oturumun bitişini
+  değiştirir), `screen_off`, `cancel_screen_off`, `show`.
+
 ## Derleme
 
 ```
@@ -67,6 +92,7 @@ Bu değişken varken kapatma, yeniden başlatma, hazırda bekletme ve ekran kapa
 | `main.py` | Başlatıcı; tek kopya denetimi |
 | `insomnia/app.py` | Pencere, tepsi ve zamanlayıcıyı bağlar; arayüzün çağırdığı işlemler |
 | `insomnia/engine.py` | Oturum zamanlayıcısı (tek iş parçacığı) |
+| `insomnia/remote.py` | Kumanda kapısı ve komut satırı istemcisi |
 | `insomnia/power.py` | Uyanık tutma, ekran, kapatma işlemleri |
 | `insomnia/settings.py` | Ayar dosyası |
 | `insomnia/startup.py` | Windows açılışında çalıştırma kaydı |
