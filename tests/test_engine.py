@@ -11,7 +11,8 @@ from insomnia.engine import IDLE, RUNNING, WARNING, Engine  # noqa: E402
 
 
 class FakePower:
-    def __init__(self, hibernate=True, action_ok=True):
+    def __init__(self, hibernate=True, action_ok=True, sleep=True):
+        self.sleep = sleep
         self.calls = []
         self.hibernate = hibernate
         self.action_ok = action_ok
@@ -33,6 +34,9 @@ class FakePower:
 
     def hibernate_available(self):
         return self.hibernate
+
+    def sleep_available(self):
+        return self.sleep
 
     def run_action(self, action):
         self.calls.append(("action", action))

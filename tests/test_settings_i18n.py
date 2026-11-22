@@ -91,7 +91,7 @@ class Translations(unittest.TestCase):
             self.assertTrue(any(k.startswith(prefix) for k in known), prefix)
         for code in ("never", "stopped", "finished", "suspended", "cancelled", "failed"):
             self.assertIn("msg_" + code, known)
-        for action in ("none", "shutdown", "restart", "hibernate"):
+        for action in ("none", "shutdown", "restart", "sleep", "hibernate"):
             for prefix in ("act_", "end_"):
                 self.assertIn(prefix + action, known)
             if action != "none":

@@ -24,7 +24,7 @@ SC_MONITORPOWER = 0xF170
 MONITOR_OFF = 2
 MOUSEEVENTF_MOVE = 0x0001
 
-ACTIONS = ("none", "shutdown", "restart", "hibernate")
+ACTIONS = ("none", "shutdown", "restart", "sleep", "hibernate")
 
 _SHUTDOWN_ARGS = {
     "shutdown": ["/s", "/f", "/t", "0"],
@@ -41,6 +41,17 @@ _user32.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, 
 _user32.PostMessageW.restype = wintypes.BOOL
 _user32.mouse_event.argtypes = [wintypes.DWORD, wintypes.DWORD, wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p]
 _user32.mouse_event.restype = None
+
+
+_powrprof_dll = None
+
+
+def _powrprof():
+    """Kitaplık bir kez yüklenir: kumanda kapısı bu sorguları saniyede birkaç kez yapıyor."""
+    global _powrprof_dll
+    if _powrprof_dll is None:
+        _powrprof_dll = ctypes.WinDLL("powrprof")
+    return _powrprof_dll
 
 
 def dry_run() -> bool:
@@ -101,12 +112,39 @@ class Power:
 
     def hibernate_available(self) -> bool:
         try:
-            return bool(ctypes.WinDLL("powrprof").IsPwrHibernateAllowed())
+            return bool(_powrprof().IsPwrHibernateAllowed())
+        except OSError:
+            return False
+
+    def sleep_available(self) -> bool:
+        try:
+            return bool(_powrprof().IsPwrSuspendAllowed())
+        except OSError:
+            return False
+
+    def action_available(self, action: str) -> bool:
+        """Bu bilgisayarda yapılabilen bir bitiş işlemi mi?"""
+        if action == "hibernate":
+            return self.hibernate_available()
+        if action == "sleep":
+            return self.sleep_available()
+        return action in ACTIONS
+
+    def _sleep(self) -> bool:
+        if dry_run():
+            self.log.append("sleep")
+            return True
+        try:
+            # (hazırda bekletme değil, zorlamadan, uyandırma olayları açık). Çağrı
+            # bilgisayar uyanınca döner.
+            return bool(_powrprof().SetSuspendState(0, 0, 0))
         except OSError:
             return False
 
     def run_action(self, action: str) -> bool:
         """Bitiş işlemini uygular. Başarılıysa True döner."""
+        if action == "sleep":
+            return self._sleep()
         args = _SHUTDOWN_ARGS.get(action)
         if args is None:
             return action == "none"

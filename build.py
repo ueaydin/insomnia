@@ -3,8 +3,9 @@
     python build.py
 
 Sürüm numarası insomnia/__init__.py içindeki __version__ değerinden okunur.
-Çıktı: dist\\Insomnia.exe (tek dosya). Dosya adında sürüm yoktur; böylece
-"Başlangıçta çalıştır" kaydı yeni sürümde de aynı dosyayı gösterir.
+Çıktı: dist\\Insomnia.exe (tek dosya, taşınabilir) ve Inno Setup 6 kuruluysa
+dist\\Insomnia-Kurulum-<sürüm>.exe (kurulum paketi; bkz. kurulum\\insomnia.iss).
+Exe adında sürüm yoktur; böylece "Başlangıçta çalıştır" kaydı yeni sürümde de aynı dosyayı gösterir.
 Ara dosyalar proje klasörüne değil geçici klasöre yazılır.
 """
 
@@ -34,6 +35,31 @@ VERSION_INFO = """VSVersionInfo(
   ]
 )
 """
+
+
+def find_iscc() -> str | None:
+    for base in (os.environ.get("LOCALAPPDATA", ""), os.environ.get("ProgramFiles(x86)", ""), os.environ.get("ProgramFiles", "")):
+        path = os.path.join(base, "Programs" if base == os.environ.get("LOCALAPPDATA") else "", "Inno Setup 6", "ISCC.exe")
+        if base and os.path.exists(path):
+            return path
+    return shutil.which("ISCC")
+
+
+def installer() -> int:
+    """Kurulum paketini üretir (Inno Setup 6 kuruluysa)."""
+    import subprocess
+
+    iscc = find_iscc()
+    if not iscc:
+        print("Not: Inno Setup 6 bulunamadı; kurulum paketi üretilmedi (yalnız taşınabilir exe var).")
+        return 0
+    done = subprocess.run([iscc, "/Q", f"/DSurum={__version__}", os.path.join(ROOT, "kurulum", "insomnia.iss")])
+    target = os.path.join(ROOT, "dist", f"{APP_NAME}-Kurulum-{__version__}.exe")
+    if done.returncode != 0 or not os.path.exists(target):
+        print("HATA: kurulum paketi üretilemedi")
+        return 1
+    print(f"Tamam: {target} ({os.path.getsize(target) / 1e6:.1f} MB)")
+    return 0
 
 
 def main() -> int:
@@ -75,8 +101,9 @@ def main() -> int:
         os.makedirs(os.path.join(ROOT, "dist"), exist_ok=True)
         target = os.path.join(ROOT, "dist", f"{APP_NAME}.exe")
         shutil.copy2(built, target)
+        shutil.copy2(icon_path, os.path.join(ROOT, "dist", f"{APP_NAME}.ico"))
         print(f"\nTamam: {target} (sürüm {__version__}, {os.path.getsize(target) / 1e6:.1f} MB)")
-        return 0
+        return installer()
     finally:
         shutil.rmtree(work, ignore_errors=True)
 

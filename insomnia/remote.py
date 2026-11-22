@@ -13,7 +13,7 @@ web sayfası dosyayı okuyamadığı için bilgisayarı kapattıramaz.
     POST /komut   -> {"komut": "...", ...}  (bkz. App.remote_command)
 
 Aynı dosyada bir de istemci vardır: ikinci kez açılan kopya komut satırındaki
-isteği (--baslat 60, --durdur, --ekran-kapat) çalışan kopyaya buradan iletir.
+isteği (--baslat 60, --durdur, --ekran-kapat, --cik) çalışan kopyaya buradan iletir.
 """
 
 import hmac
@@ -184,6 +184,10 @@ def send(request: dict, timeout: float = 3.0):
 def parse_args(argv) -> dict | None:
     """Komut satırını komuta çevirir; komut yoksa None, hatalıysa {"komut": "bad"}."""
     args = list(argv)
+    if "--cik" in args:
+        return {"komut": "quit"}
+    if "--oturum-var" in args:
+        return {"komut": "status"}
     if "--durdur" in args:
         return {"komut": "stop"}
     if "--ekran-kapat" in args:

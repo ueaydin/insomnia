@@ -82,6 +82,38 @@ class SetAction(unittest.TestCase):
         self.assertEqual(engine.set_action("none")["error"], "not_running")  # uyarıda değişmez
 
 
+class Sleep(unittest.TestCase):
+    def test_sleep_runs_after_warning_and_releases_first(self):
+        engine, clock, power, _ = make()
+        self.assertTrue(engine.start_session(minutes=1, action="sleep")["ok"])
+        advance(engine, clock, 61)
+        self.assertEqual(engine.snapshot()["phase"], WARNING)
+        advance(engine, clock, 61)
+        self.assertEqual(power.actions(), ["sleep"])
+        i = power.calls.index(("action", "sleep"))
+        self.assertEqual(power.calls[i - 1], ("release",), "uyanık tutma uykudan önce bırakılmalı")
+        self.assertEqual(engine.snapshot()["phase"], IDLE)
+
+    def test_waking_up_after_sleep_does_nothing_more(self):
+        engine, clock, power, _ = make()
+        engine.start_session(minutes=1, action="sleep")
+        advance(engine, clock, 122)
+        clock.now += 8 * 3600  # bilgisayar saatlerce uyudu
+        engine.step()
+        advance(engine, clock, 120)
+        self.assertEqual(power.actions(), ["sleep"])
+        self.assertEqual(engine.snapshot()["message"], "finished")
+
+    def test_rejected_when_unavailable(self):
+        engine, clock, power, _ = make(sleep=False)
+        self.assertEqual(engine.start_session(minutes=5, action="sleep"), {"ok": False, "error": "sleep_unavailable"})
+        engine.start_session(minutes=5)
+        self.assertEqual(engine.set_action("sleep")["error"], "sleep_unavailable")
+
+    def test_command_line(self):
+        self.assertEqual(remote.parse_args(["--baslat", "30", "--islem", "sleep"])["action"], "sleep")
+
+
 class ActNow(unittest.TestCase):
     def test_only_during_warning(self):
         engine, clock, power, _ = make()
@@ -225,6 +257,8 @@ class ParseArgs(unittest.TestCase):
         self.assertIsNone(p([]))
         self.assertIsNone(p(["--tray"]))
         self.assertEqual(p(["--durdur"]), {"komut": "stop"})
+        self.assertEqual(p(["--cik"]), {"komut": "quit"})
+        self.assertEqual(p(["--oturum-var"]), {"komut": "status"})
         self.assertEqual(p(["--ekran-kapat"]), {"komut": "screen_off"})
         self.assertEqual(p(["--baslat", "60"]), {"komut": "start", "infinite": False, "minutes": 60, "action": "none"})
         self.assertEqual(p(["--baslat", "0"]), {"komut": "start", "infinite": True, "minutes": None, "action": "none"})

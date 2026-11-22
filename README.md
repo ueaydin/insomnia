@@ -1,14 +1,14 @@
 # Insomnia
 
 Bilgisayarı belirlediğin süre boyunca uyanık tutan küçük bir Windows programı.
-Süre dolunca istersen bilgisayarı kapatır, yeniden başlatır ya da hazırda bekletir.
+Süre dolunca istersen bilgisayarı kapatır, yeniden başlatır, uyku moduna alır ya da hazırda bekletir.
 
-Sürüm: 1.2.0
+Sürüm: 1.4.0
 
 ## Ne yapar
 
 - **Süre:** 15 dk, 30 dk, 1 sa, 2 sa, süresiz (∞) ya da 1–1440 dakika arası özel süre.
-- **Süre bitince:** bir şey yapma, bilgisayarı kapat, yeniden başlat, hazırda beklet.
+- **Süre bitince:** bir şey yapma, bilgisayarı kapat, yeniden başlat, uyku moduna al, hazırda beklet.
 - **Sesli uyarı:** süre dolunca iki kısa bip.
 - **Ekranı kapat:** düğmeyle ya da oturum başlarken; ikisinde de 10 saniyelik, vazgeçilebilir geri sayım.
 - **Tepsi simgesi (saatin yanı):** ay simgesi. Hazırken gri; çalışırken altın ve çevresinde kalan süreyi gösteren halka; son dakikalarda bitiş işleminin rengi.
@@ -17,7 +17,7 @@ Sürüm: 1.2.0
 
 ## Bilmen gereken davranışlar
 
-- Kapatma, yeniden başlatma ve hazırda bekletmeden önce **60 saniyelik uyarı** çıkar; pencere öne gelir, ekran
+- Kapatma, yeniden başlatma, uyku ve hazırda bekletmeden önce **60 saniyelik uyarı** çıkar; pencere öne gelir, ekran
   kapalıysa açılır. "Vazgeç"e basılırsa işlem yapılmaz.
 - Kapatma ve yeniden başlatma açık programları zorla kapatır (`shutdown /f`); kaydedilmemiş işler kaybolur.
 - **Bitiş işlemi hatırlanmaz.** Program her açılışta "Bir şey yapma" ile başlar.
@@ -27,6 +27,21 @@ Sürüm: 1.2.0
 - **Ayarlar (dişli):** programın nerede görüneceği (saatin yanı + görev çubuğu, yalnız saatin yanı, yalnız görev çubuğu), dil ve Windows açılışında çalıştırma. "Yalnız görev çubuğunda" seçiliyken tepsi simgesi yoktur; × oturum sürerken pencereyi küçültür, boştayken programı kapatır.
 - Windows kapanırken ya da oturum kapatılırken program kapanmayı engellemez.
 - Ayarlar `%APPDATA%\Insomnia\settings.json` dosyasında durur.
+
+## Kurulum
+
+`Insomnia-Kurulum-<sürüm>.exe` dosyasını çalıştır. Yönetici izni istemez; program
+`%LOCALAPPDATA%\Programs\Insomnia` altına kurulur. Kurulum şunları sorar:
+
+- **Ulanzi D200 eklentisini de kur** (yalnız bilgisayarda Ulanzi Studio varsa görünür)
+- **Windows açılışında başlat**
+- **Masaüstüne kısayol koy**
+
+Güncellerken aynı dosyanın yeni sürümünü çalıştırmak yeter: çalışan Insomnia'yı kendisi kapatır
+(oturum sürüyorsa önce sorar). Kaldırma Windows'un "Uygulamalar" listesinden yapılır; ayarlar
+(`%APPDATA%\Insomnia`) bırakılır.
+
+Kurulum istemeyenler için `Insomnia.exe` tek başına da çalışır (taşınabilir).
 
 ## Çalıştırma
 
@@ -47,9 +62,10 @@ Komut satırından:
 
 ```
 Insomnia.exe --baslat 60                    # 60 dakikalık oturum (0 = süresiz); program kapalıysa tepside açar
-Insomnia.exe --baslat 60 --islem shutdown   # bitince kapat (restart, hibernate)
+Insomnia.exe --baslat 60 --islem shutdown   # bitince kapat (restart, sleep, hibernate)
 Insomnia.exe --durdur
 Insomnia.exe --ekran-kapat
+Insomnia.exe --cik                          # programı kapatır
 ```
 
 Programdan: `%LOCALAPPDATA%\Insomnia\kumanda.json` dosyasında kapı numarası (`port`) ve
@@ -69,7 +85,8 @@ olanlar) reddedilir.
 python build.py
 ```
 
-`dist\Insomnia.exe` oluşur (tek dosya). Sürüm numarası `insomnia/__init__.py` içindeki `__version__` değeridir.
+`dist\Insomnia.exe` (tek dosya, taşınabilir) ve Inno Setup 6 kuruluysa
+`dist\Insomnia-Kurulum-<sürüm>.exe` (kurulum paketi, `kurulum\insomnia.iss`) oluşur. Sürüm numarası `insomnia/__init__.py` içindeki `__version__` değeridir.
 
 ## Sınama
 
@@ -83,7 +100,7 @@ Deneme sırasında bilgisayarın gerçekten kapanmaması için:
 set INSOMNIA_DRY_RUN=1
 ```
 
-Bu değişken varken kapatma, yeniden başlatma, hazırda bekletme ve ekran kapatma yapılmaz.
+Bu değişken varken kapatma, yeniden başlatma, uyku, hazırda bekletme ve ekran kapatma yapılmaz.
 
 ## Dosyalar
 
@@ -93,6 +110,7 @@ Bu değişken varken kapatma, yeniden başlatma, hazırda bekletme ve ekran kapa
 | `insomnia/app.py` | Pencere, tepsi ve zamanlayıcıyı bağlar; arayüzün çağırdığı işlemler |
 | `insomnia/engine.py` | Oturum zamanlayıcısı (tek iş parçacığı) |
 | `insomnia/remote.py` | Kumanda kapısı ve komut satırı istemcisi |
+| `kurulum/insomnia.iss` | Kurulum paketi tarifi (Inno Setup) |
 | `ulanzi/` | Ulanzi D200 eklentisi (Node.js); programdan bağımsız kurulur |
 | `insomnia/power.py` | Uyanık tutma, ekran, kapatma işlemleri |
 | `insomnia/settings.py` | Ayar dosyası |

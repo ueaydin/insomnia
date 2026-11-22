@@ -155,8 +155,8 @@ class Engine(threading.Thread):
             action = "none"  # süresiz oturumun bitişi yok
         elif not valid_minutes(minutes):
             return {"ok": False, "error": "bad_minutes"}
-        if action == "hibernate" and not self._power.hibernate_available():
-            return {"ok": False, "error": "hibernate_unavailable"}
+        if not self._available(action):
+            return {"ok": False, "error": action + "_unavailable"}
 
         if self._phase != IDLE:
             if self._acting:
@@ -219,8 +219,8 @@ class Engine(threading.Thread):
             return {"ok": False, "error": "bad_action"}
         if self._phase != RUNNING or self._infinite:
             return {"ok": False, "error": "not_running"}
-        if action == "hibernate" and not self._power.hibernate_available():
-            return {"ok": False, "error": "hibernate_unavailable"}
+        if not self._available(action):
+            return {"ok": False, "error": action + "_unavailable"}
         self._action = action
         return {"ok": True}
 
@@ -234,6 +234,13 @@ class Engine(threading.Thread):
         self._power.release()
         self._quit = True
         return {"ok": True}
+
+    def _available(self, action) -> bool:
+        if action == "hibernate":
+            return self._power.hibernate_available()
+        if action == "sleep":
+            return self._power.sleep_available()
+        return True
 
     def _end_session(self):
         self._phase = IDLE
@@ -282,6 +289,9 @@ class Engine(threading.Thread):
         return effects
 
     def _finish_action(self):
+        if self._action == "sleep":
+            # Uyanık tutma isteği uykudan önce bırakılır; çağrı bilgisayar uyanınca döner.
+            self._power.release()
         ok = self._power.run_action(self._action)
         with self._lock:
             self._end_session()

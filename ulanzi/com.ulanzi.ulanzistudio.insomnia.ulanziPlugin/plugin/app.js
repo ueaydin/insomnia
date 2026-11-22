@@ -9,7 +9,7 @@
  * Bes tus vardir:
  *   ana      bostayken baslatir, calisirken durdurur, uyarida vazgecer
  *   eksi/arti bostayken baslatilacak sureyi secer; calisirken 15 dk cikarir/ekler
- *   bitince  sure bitince ne olacagini secer; 60 sn'lik uyarida "simdi yap" olur
+ *   bitince  sure bitince ne olacagini secer (yok, kapat, yeniden baslat, uyut, hazirda beklet); 60 sn'lik uyarida "simdi yap" olur
  *   ekran    ekrani 10 sn sonra kapatir; tekrar basinca iptal eder
  *
  * Insomnia kapaliyken bir tusa basilirsa program tepside acilir; basilan tus
@@ -47,6 +47,7 @@ let S = null; // Insomnia'nin durumu; kapaliysa null
 let exeYolu = "";
 let acilmaSonu = 0; // program acilirken: beklemenin bitecegi an
 let bekleyen = null; // program acilinca yollanacak komut
+let eskiSurum = false; // program acildi ama kumanda kapisi gelmedi (1.2.0 oncesi Insomnia)
 let uyariBasi = 0;
 let sonDurumAni = 0;
 let zamanlayici = null;
@@ -138,7 +139,16 @@ function durumAl(yeni) {
   if (gecerli && gecerli.phase === "warning" && !oncekiUyari) uyariBasi = simdi;
   sonDurumAni = simdi;
   S = gecerli;
-  if (S) acilmaSonu = 0;
+  if (S) {
+    acilmaSonu = 0;
+    eskiSurum = false;
+    // Secili islem bu Insomnia'da yoksa (eski surum, uyku/hazirda bekletme kapali) tus
+    // olmayacak bir seyi gostermesin.
+    if (P.islem !== "none" && !islemVar(P.islem)) {
+      P.islem = "none";
+      secimiYaz();
+    }
+  }
 }
 
 async function komut(govde, context) {
@@ -158,11 +168,13 @@ async function yokla() {
       const b = bekleyen;
       bekleyen = null;
       // Suresi gecmis istek uygulanmaz: dakikalar sonra kendiliginden oturum baslamasin.
-      if (Date.now() <= b.son) await komut(b.govde, b.context);
+      // Komut simdi kurulur: secili islem bu Insomnia'da yoksa durumAl onu az once duzeltti.
+      if (Date.now() <= b.son) await komut(b.tur === "ana" ? baslatKomutu() : { komut: "screen_off" }, b.context);
     }
     if (!S && acilmaSonu && Date.now() > acilmaSonu) {
-      acilmaSonu = 0; // acilamadi
+      acilmaSonu = 0; // acildi ama kapi gelmedi
       bekleyen = null;
+      eskiSurum = true;
     }
     ciz();
   } finally {
@@ -194,7 +206,7 @@ function programiAc(context) {
 // ---------------------------------------------------------------- cizim --
 
 function ciz() {
-  const D = { S, P, aciliyor: !S && acilmaSonu > 0, dil: (S && S.lang) || sonDil };
+  const D = { S, P, aciliyor: !S && acilmaSonu > 0, eski: eskiSurum, dil: (S && S.lang) || sonDil };
   if (S && S.lang) sonDil = S.lang;
   for (const [context, tur] of tuslar) {
     const svg = tus(tur, D);
@@ -220,7 +232,9 @@ function motoruAyarla() {
 // ---------------------------------------------------------------- tuslar --
 
 function baslatKomutu() {
-  return { komut: "start", minutes: P.dk || null, infinite: P.dk === 0, action: P.dk === 0 ? "none" : P.islem };
+  // Secili islem bu Insomnia'da yoksa (eski surum) bitiste bir sey yapilmaz.
+  const islem = P.dk === 0 || (S && !islemVar(P.islem)) ? "none" : P.islem;
+  return { komut: "start", minutes: P.dk || null, infinite: P.dk === 0, action: islem };
 }
 
 function sureTusu(yon, context) {
@@ -235,11 +249,18 @@ function sureTusu(yon, context) {
   ciz();
 }
 
+// Insomnia bu islemi yapabiliyor mu? Yeni surumler listeyi kendisi bildirir (actions).
+function islemVar(islem) {
+  if (Array.isArray(S.actions)) return S.actions.includes(islem);
+  if (islem === "sleep") return false; // 1.2.0: uyku yok
+  return islem !== "hibernate" || S.hibernate !== false;
+}
+
 function siradakiIslem(simdiki) {
   let i = ISLEMLER.indexOf(simdiki);
   for (let n = 0; n < ISLEMLER.length; n++) {
     i = (i + 1) % ISLEMLER.length;
-    if (ISLEMLER[i] !== "hibernate" || S.hibernate !== false) return ISLEMLER[i];
+    if (islemVar(ISLEMLER[i])) return ISLEMLER[i];
   }
   return "none";
 }
@@ -274,8 +295,7 @@ async function bas(context, tur) {
   durumAl(await istek("/durum"));
 
   if (!S) {
-    if (tur === "ana") bekleyen = { govde: baslatKomutu(), context, son: simdi + ACILMA_MS };
-    else if (tur === "ekran") bekleyen = { govde: { komut: "screen_off" }, context, son: simdi + ACILMA_MS };
+    if (tur === "ana" || tur === "ekran") bekleyen = { tur, context, son: simdi + ACILMA_MS };
     programiAc(context);
     return;
   }

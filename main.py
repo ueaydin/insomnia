@@ -9,6 +9,8 @@
     python main.py --baslat 60 --islem shutdown   bitince kapat (restart, hibernate)
     python main.py --durdur
     python main.py --ekran-kapat
+    python main.py --cik            programı kapatır
+    python main.py --oturum-var     oturum sürüyorsa 3, sürmüyorsa 0 ile çıkar (kurulum paketi sorar)
 """
 
 import sys
@@ -24,6 +26,8 @@ def main() -> int:
             return 2
         result = remote.send(command)
         if result is not None:
+            if command["komut"] == "status":
+                return 3 if (result.get("state") or {}).get("phase") != "idle" else 0
             return 0 if result.get("ok") else 1
         if command["komut"] != "start":
             return 1  # program kapalı: durdurulacak ya da ekranı kapatacak kopya yok

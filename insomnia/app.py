@@ -10,7 +10,7 @@ import webview
 
 from . import APP_NAME, __version__, i18n, remote, settings, single_instance, startup
 from .engine import IDLE, Engine
-from .power import Power
+from .power import ACTIONS, Power
 from .tray import Tray
 
 WIDTH, HEIGHT = 720, 420
@@ -433,6 +433,7 @@ class App:
             "startup": startup.is_enabled(),
             "languages": [{"code": code, "name": name} for code, name in i18n.LANGUAGE_NAMES.items()],
             "hibernate": self.power.hibernate_available(),
+            "sleep": self.power.sleep_available(),
             "limits": {"min": settings.MIN_MINUTES, "max": settings.MAX_MINUTES},
             "state": self.ui_state(),
         }
@@ -476,6 +477,9 @@ class App:
             version=__version__,
             lang=i18n.language(),
             hibernate=self.power.hibernate_available(),
+            sleep=self.power.sleep_available(),
+            # Eklenti yalnız buradaki işlemleri sunar; ileride eklenenlerle de uyumlu kalır.
+            actions=[a for a in ACTIONS if self.power.action_available(a)],
             limits={"min": settings.MIN_MINUTES, "max": settings.MAX_MINUTES},
         )
         return state
@@ -508,6 +512,12 @@ class App:
             result = engine.cancel_screen_off()
         elif name == "show":
             self.show_window()
+            result = {"ok": True}
+        elif name == "status":
+            result = {"ok": True}
+        elif name == "quit":
+            # Yanıt gittikten sonra kapanır (kurulum paketi güncellerken bunu kullanır).
+            threading.Timer(0.3, self.quit).start()
             result = {"ok": True}
         else:
             result = {"ok": False, "error": "unknown_command"}

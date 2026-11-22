@@ -9,9 +9,10 @@ GOLD = (224, 176, 64)
 RED = (255, 123, 107)
 ORANGE = (240, 169, 74)
 BLUE = (108, 176, 238)
+PURPLE = (183, 156, 245)
 DARK = (27, 27, 29)
 
-ACTION_COLORS = {"none": GOLD, "shutdown": RED, "restart": ORANGE, "hibernate": BLUE}
+ACTION_COLORS = {"none": GOLD, "shutdown": RED, "restart": ORANGE, "sleep": PURPLE, "hibernate": BLUE}
 
 _STAR = [(22.5, 5.5), (23.5, 8), (26, 9), (23.5, 10), (22.5, 12.5), (21.5, 10), (19, 9), (21.5, 8)]
 

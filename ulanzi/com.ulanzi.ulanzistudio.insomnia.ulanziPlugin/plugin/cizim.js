@@ -8,7 +8,7 @@
  *
  * tus(tur, D) -> SVG metni
  *   tur: "ana" | "eksi" | "arti" | "bitince" | "ekran"
- *   D:   { S, P, aciliyor, dil }
+ *   D:   { S, P, aciliyor, eski, dil }
  *        S = Insomnia'nin durumu (kapaliysa null), P = { dk, islem } secili sure ve bitis islemi
  */
 
@@ -23,7 +23,7 @@ const KUTU_SOLUK = "#1a1a1f";
 const IZ = "#33333b";
 const FONT = 'font-family="Arial" font-weight="bold"';
 
-export const ISLEMLER = ["none", "shutdown", "restart", "hibernate"];
+export const ISLEMLER = ["none", "shutdown", "restart", "sleep", "hibernate"];
 export const MERDIVEN = [15, 30, 45, 60, 90, 120, 180, 240, 360, 480, 0]; // secilebilen sureler (dk); 0 = suresiz
 export const ADIM_SN = 900; // calisan oturuma eklenen/cikarilan sure
 export const EN_AZ_SN = 60; // sure cikarilirken kalan sure bunun altina inemez (Insomnia ile ayni)
@@ -36,20 +36,20 @@ export function adimVar(yon, S, P) {
   const i = MERDIVEN.indexOf(P.dk);
   return yon > 0 ? i < MERDIVEN.length - 1 : i !== 0;
 }
-export const IRENK = { none: GRI, shutdown: "#ff4b3e", restart: "#ff9500", hibernate: "#1e90ff" };
+export const IRENK = { none: GRI, shutdown: "#ff4b3e", restart: "#ff9500", sleep: "#a970ff", hibernate: "#1e90ff" };
 
 const METIN = {
   tr: {
-    kapali: "Kapalı", aciliyor: "Açılıyor", vazgec: "VAZGEÇ", sure: "Süre", bitince: "BİTİNCE", ekran: "EKRANI", ekranKapat: "Kapat", kapaniyor: "KAPANIYOR", iptal: "İptal",
+    kapali: "Kapalı", aciliyor: "Açılıyor", guncelle: "Güncelle", vazgec: "VAZGEÇ", sure: "Süre", bitince: "BİTİNCE", ekran: "EKRANI", ekranKapat: "Kapat", kapaniyor: "KAPANIYOR", iptal: "İptal",
     dk: "dk", sa: "sa", sn: "sn",
-    kisa: { none: "Yok", shutdown: "Kapat", restart: "Yeniden", hibernate: "Beklet" },
-    simdi: { shutdown: ["ŞİMDİ", "Kapat"], restart: ["ŞİMDİ YENİDEN", "Başlat"], hibernate: ["ŞİMDİ HAZIRDA", "Beklet"] },
+    kisa: { none: "Yok", shutdown: "Kapat", restart: "Yeniden", sleep: "Uyut", hibernate: "Beklet" },
+    simdi: { shutdown: ["ŞİMDİ", "Kapat"], restart: ["ŞİMDİ YENİDEN", "Başlat"], sleep: ["ŞİMDİ", "Uyut"], hibernate: ["ŞİMDİ HAZIRDA", "Beklet"] },
   },
   en: {
-    kapali: "Closed", aciliyor: "Opening", vazgec: "CANCEL", sure: "Time", bitince: "WHEN DONE", ekran: "SCREEN", ekranKapat: "Turn off", kapaniyor: "TURNING OFF", iptal: "Cancel",
+    kapali: "Closed", aciliyor: "Opening", guncelle: "Update", vazgec: "CANCEL", sure: "Time", bitince: "WHEN DONE", ekran: "SCREEN", ekranKapat: "Turn off", kapaniyor: "TURNING OFF", iptal: "Cancel",
     dk: "m", sa: "h", sn: "s",
-    kisa: { none: "None", shutdown: "Shut down", restart: "Restart", hibernate: "Hibernate" },
-    simdi: { shutdown: ["NOW", "Shut down"], restart: ["NOW", "Restart"], hibernate: ["NOW", "Hibernate"] },
+    kisa: { none: "None", shutdown: "Shut down", restart: "Restart", sleep: "Sleep", hibernate: "Hibernate" },
+    simdi: { shutdown: ["NOW", "Shut down"], restart: ["NOW", "Restart"], sleep: ["NOW", "Sleep"], hibernate: ["NOW", "Hibernate"] },
   },
 };
 
@@ -104,6 +104,11 @@ export function islemSimge(islem, cx, cy, boy, renk, zemin) {
   let ic;
   if (islem === "shutdown") ic = `<path ${c} d="M12 2.5v9.5"/><path ${c} d="M6.2 6.4a8.5 8.5 0 1 0 11.6 0"/>`;
   else if (islem === "restart") ic = `<path ${c} d="M20.2 12.5a8.3 8.3 0 1 1-2.9-6.3"/><path fill="${renk}" d="M21.6 2.6v7.2h-7.2z"/>`;
+  else if (islem === "sleep")
+    // Dikkat: bir etikette ayni ozellik iki kez yazilirsa cihaz simgeyi hic cizmez.
+    ic =
+      `<path ${c} d="M4 9h9l-9 11h9"/>` +
+      `<path fill="none" stroke="${renk}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M15 3h5l-5 5.5h5"/>`;
   else if (islem === "hibernate")
     ic =
       `<circle cx="11" cy="13" r="9" fill="${renk}"/><circle cx="16.4" cy="8.4" r="7.6" fill="${zemin || ZEMIN}"/>` +
@@ -124,6 +129,8 @@ export function sonluMu(S) {
 }
 
 function kapaliTus(ic, D, T) {
+  // "Guncelle": program acildi ama kumanda kapisi gelmedi = Insomnia 1.2.0'dan eski
+  if (D.eski && !D.aciliyor) return svg(ic + yazi(T.guncelle, 176, 28, ALTIN));
   return svg(ic + yazi(D.aciliyor ? T.aciliyor : T.kapali, 176, 28, "#8c8c94"));
 }
 
@@ -185,11 +192,12 @@ function bitinceTusu(D, T) {
   const calisiyor = S.phase === "running";
   const gecerli = calisiyor ? S.action : P.dk === 0 ? "none" : P.islem;
   const pasif = calisiyor ? S.infinite : P.dk === 0;
-  const renk = pasif ? SOLUK : IRENK[gecerli];
+  // Bilinmeyen islem (ileride Insomnia'ya eklenen): gri simge ve "?" ile gosterilir, cizim bozulmaz.
+  const renk = pasif ? SOLUK : IRENK[gecerli] || GRI;
   return svg(
     yazi(T.bitince, 30, 22, pasif ? SOLUK : GRI) +
       islemSimge(gecerli, 98, 92, 88, renk, ZEMIN) +
-      yazi(T.kisa[gecerli], 178, 32, pasif ? SOLUK : gecerli === "none" ? KREM : renk)
+      yazi(T.kisa[gecerli] || "?", 178, 32, pasif ? SOLUK : gecerli === "none" ? KREM : renk)
   );
 }
 
