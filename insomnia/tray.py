@@ -71,20 +71,23 @@ class Tray:
         state = self._state
         if state is None:
             return
+        step = None  # None: halkasız ay (boşta)
         if state["phase"] == IDLE:
             color, tip = icons.GRAY, i18n.t("tip_ready")
         elif state["phase"] == WARNING:
             color, tip = icons.ACTION_COLORS.get(state["action"], icons.GOLD), i18n.t("tip_warn")
+            step = 0
         else:
+            step = icons.ring_step(state["remaining"], state["total"], state["infinite"])
             color = icons.ACTION_COLORS.get(state["action"], icons.GOLD) if state["ending"] else icons.GOLD
             if state["infinite"]:
                 tip = i18n.t("tip_inf")
             else:
                 tip = i18n.t("tip_left", m=-(-state["remaining"] // 60))
         try:
-            if color != self._look:
-                self._look = color
-                self.icon.icon = icons.moon(color)
+            if (color, step) != self._look:
+                self._look = (color, step)
+                self.icon.icon = icons.moon(color) if step is None else icons.ring_moon(color, step)
             if self.icon.title != tip:
                 self.icon.title = tip
         except Exception:
@@ -105,8 +108,17 @@ class Tray:
 
     # -- yaşam döngüsü ------------------------------------------------------
 
-    def start(self) -> None:
-        self.icon.run_detached()
+    def start(self, visible: bool = True) -> None:
+        def setup(icon):
+            icon.visible = visible
+
+        self.icon.run_detached(setup)
+
+    def set_visible(self, visible: bool) -> None:
+        try:
+            self.icon.visible = visible
+        except Exception:
+            pass
 
     def stop(self) -> None:
         try:

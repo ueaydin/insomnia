@@ -8,7 +8,7 @@ from ctypes import wintypes
 
 import webview
 
-from . import APP_NAME, __version__, i18n, settings, single_instance
+from . import APP_NAME, __version__, i18n, settings, single_instance, startup
 from .engine import IDLE, Engine
 from .power import Power
 from .tray import Tray
@@ -30,6 +30,22 @@ _SWP_NOZORDER = 0x0004
 _SWP_NOACTIVATE = 0x0010
 _user32.GetWindowRect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
 _user32.GetWindowRect.restype = wintypes.BOOL
+_user32.GetWindowLongPtrW.argtypes = [wintypes.HWND, ctypes.c_int]
+_user32.GetWindowLongPtrW.restype = ctypes.c_ssize_t
+_user32.SetWindowLongPtrW.argtypes = [wintypes.HWND, ctypes.c_int, ctypes.c_ssize_t]
+_user32.SetWindowLongPtrW.restype = ctypes.c_ssize_t
+_user32.IsWindowVisible.argtypes = [wintypes.HWND]
+_user32.IsWindowVisible.restype = wintypes.BOOL
+_user32.ShowWindow.argtypes = [wintypes.HWND, ctypes.c_int]
+_user32.ShowWindow.restype = wintypes.BOOL
+_GWL_EXSTYLE = -20
+_WS_EX_TOOLWINDOW = 0x00000080
+_WS_EX_APPWINDOW = 0x00040000
+_user32.IsIconic.argtypes = [wintypes.HWND]
+_user32.IsIconic.restype = wintypes.BOOL
+_SM_SHUTTINGDOWN = 0x2000
+_SW_HIDE = 0
+_SW_SHOW = 5
 
 
 def _resource(*parts) -> str:
@@ -79,6 +95,15 @@ class Api:
     def fit(self, inner_width, inner_height, scale):
         self._app.fit_window(inner_width, inner_height, scale)
 
+    def set_visibility(self, mode):
+        return self._app.set_visibility(mode)
+
+    def set_language(self, code):
+        self._app.set_language(code)
+
+    def set_startup(self, enabled):
+        return self._app.set_startup(enabled)
+
     def minimize(self):
         self._app.minimize_window()
 
@@ -93,9 +118,12 @@ class App:
     def __init__(self, start_hidden: bool = False):
         self.settings = settings.load()
         i18n.set_language(self.settings["language"])
-        self._start_hidden = start_hidden
-        self._visible = not start_hidden
-        self._minimized = False
+        self._visibility = self.settings["visibility"]
+        # Tepsi simgesi yokken gizli başlamak programı erişilmez yapar; küçültülmüş başlar.
+        self._start_minimized = start_hidden and self._visibility == "taskbar"
+        self._start_hidden = start_hidden and not self._start_minimized
+        self._visible = not self._start_hidden
+        self._minimized = self._start_minimized
         self._quitting = False
         self._fitted = False
         self._lang_rev = 0
@@ -130,14 +158,17 @@ class App:
             frameless=True,
             easy_drag=False,
             hidden=self._start_hidden,
+            minimized=self._start_minimized,
             background_color="#1b1b1d",
         )
+        self.window.events.loaded += self._apply_taskbar_button
+        self.window.events.before_show += self._allow_windows_shutdown
         self.window.events.closing += self._on_closing
         self.window.events.minimized += lambda: self._set_minimized(True)
         self.window.events.restored += lambda: self._set_minimized(False)
 
         self.engine.start()
-        self.tray.start()
+        self.tray.start(visible=self._visibility != "taskbar")
         single_instance.listen(self.show_window)
         try:
             webview.start(
@@ -178,16 +209,18 @@ class App:
         values = (inner_width, inner_height, scale)
         if not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in values) or not 0.5 <= scale <= 5:
             return
-        self._fitted = True
         dw, dh = round((WIDTH - inner_width) * scale), round((HEIGHT - inner_height) * scale)
-        if not (dw or dh) or abs(dw) > 300 or abs(dh) > 300:
-            return
         try:
             # pywebview'in resize'ı kullanılmaz: SWP_SHOWWINDOW ile çağırdığı için
             # tepside (gizli) başlayan pencereyi görünür yapıyordu.
             hwnd = int(self.window.native.Handle.ToInt64())
+            if not hwnd or _user32.IsIconic(hwnd) or abs(dw) > 300 or abs(dh) > 300:
+                return  # küçültülmüşken ölçü anlamsız; arayüz pencere açılınca yeniden bildirir
+            self._fitted = True
+            if not (dw or dh):
+                return
             rect = wintypes.RECT()
-            if hwnd and _user32.GetWindowRect(hwnd, ctypes.byref(rect)):
+            if _user32.GetWindowRect(hwnd, ctypes.byref(rect)):
                 _user32.SetWindowPos(
                     hwnd, None, 0, 0, rect.right - rect.left + dw, rect.bottom - rect.top + dh,
                     _SWP_NOMOVE | _SWP_NOZORDER | _SWP_NOACTIVATE,
@@ -198,8 +231,29 @@ class App:
     def _on_closing(self):
         if self._quitting:
             return True
-        self.hide_window()  # Alt+F4 de tepsiye gizler; çıkış tepsi menüsünden
+        if _user32.GetSystemMetrics(_SM_SHUTTINGDOWN):
+            return True  # Windows kapanıyor: kapanmayı engelleme
+        self.hide_window()  # Alt+F4 de × gibi davranır
         return False
+
+    def _allow_windows_shutdown(self) -> None:
+        """Windows kapanırken ya da oturum kapatılırken pencerenin kapanmasına izin verir.
+
+        Pencereyi kapatma isteği normalde reddedilir (tepsiye gizlenir). Aynı ret
+        Windows'un "kapanabilir miyim" sorusuna da gidiyor ve pencere açıkken
+        Windows'u "bu uygulama kapanmayı engelliyor" ekranında bekletiyordu.
+        """
+        try:
+            from System.Windows.Forms import CloseReason, FormClosingEventHandler
+
+            def handler(_sender, args):
+                if args.CloseReason in (CloseReason.WindowsShutDown, CloseReason.TaskManagerClosing):
+                    args.Cancel = False
+
+            self._closing_handler = FormClosingEventHandler(handler)  # çöp toplanmasın
+            self.window.native.FormClosing += self._closing_handler
+        except Exception as exc:
+            self.log(f"allow_windows_shutdown: {exc!r}")
 
     def show_window(self) -> None:
         if self.window is None or self._quitting:
@@ -233,22 +287,83 @@ class App:
     def hide_window(self) -> None:
         if self.window is None:
             return
+        if self._visibility == "taskbar":
+            # Tepsi simgesi yok: gizlenen pencereye ulaşılamazdı. Oturum sürüyorsa
+            # yanlışlıkla sonlanmasın diye küçültülür; boştayken × programı kapatır.
+            if self.engine.snapshot()["phase"] != IDLE:
+                self.minimize_window()
+            else:
+                threading.Timer(0.1, self.quit).start()
+            return
         try:
             self.window.hide()
         except Exception as exc:
             self.log(f"hide_window: {exc!r}")
         self._visible = False
+        self._minimized = False
         if not self.settings["tray_hint_shown"]:
             self.settings["tray_hint_shown"] = True
             settings.save(self.settings)
             self.tray.notify(i18n.t("tray_hint"))
 
     def minimize_window(self) -> None:
+        if self._visibility == "tray":
+            self.hide_window()  # görev çubuğunda düğme yok: küçültmek yerine tepsiye gizle
+            return
         try:
             self.window.minimize()
             self._minimized = True
         except Exception as exc:
             self.log(f"minimize_window: {exc!r}")
+
+    # ------------------------------------------------------------------ #
+    #  Görünüm: saatin yanı / görev çubuğu                                #
+    # ------------------------------------------------------------------ #
+
+    def set_visibility(self, mode) -> str:
+        if mode in settings.VISIBILITY and mode != self._visibility:
+            with self._lock:
+                self._visibility = mode
+                self.settings["visibility"] = mode
+                settings.save(self.settings)
+            self.tray.set_visible(mode != "taskbar")
+            self._apply_taskbar_button()
+        return self._visibility
+
+    def _apply_taskbar_button(self) -> None:
+        """Görev çubuğu düğmesini görünüm ayarına göre gösterir ya da kaldırır.
+
+        Düğme pencerenin genişletilmiş stiliyle belirlenir (araç penceresi =
+        düğme yok). Stil yalnız pencere gizliyken değiştirilince etkili olur;
+        bu yüzden pencere açıksa bir an gizlenip yeniden gösterilir. Hepsi
+        ctypes ile yapılır (bkz. _bring_to_front'taki kilitlenme notu).
+        """
+        if self.window is None or self._quitting:
+            return
+        try:
+            hwnd = int(self.window.native.Handle.ToInt64())
+            if not hwnd:
+                return
+            style = _user32.GetWindowLongPtrW(hwnd, _GWL_EXSTYLE)
+            if self._visibility == "tray":
+                wanted = (style | _WS_EX_TOOLWINDOW) & ~_WS_EX_APPWINDOW
+            else:
+                wanted = style & ~_WS_EX_TOOLWINDOW
+            if wanted == style:
+                return
+            shown = bool(_user32.IsWindowVisible(hwnd))
+            if shown:
+                _user32.ShowWindow(hwnd, _SW_HIDE)
+            _user32.SetWindowLongPtrW(hwnd, _GWL_EXSTYLE, wanted)
+            if shown:
+                _user32.ShowWindow(hwnd, _SW_SHOW)
+        except Exception as exc:
+            self.log(f"taskbar_button: {exc!r}")
+
+    def set_startup(self, enabled) -> bool:
+        if isinstance(enabled, bool):
+            (startup.enable if enabled else startup.disable)()
+        return startup.is_enabled()
 
     def toggle_window(self) -> None:
         if self._visible and not self._minimized:
@@ -303,6 +418,9 @@ class App:
                 "sound": self.settings["sound_enabled"],
                 "monitor_off": self.settings["monitor_off"],
             },
+            "visibility": self._visibility,
+            "startup": startup.is_enabled(),
+            "languages": [{"code": code, "name": name} for code, name in i18n.LANGUAGE_NAMES.items()],
             "hibernate": self.power.hibernate_available(),
             "limits": {"min": settings.MIN_MINUTES, "max": settings.MAX_MINUTES},
             "state": self.ui_state(),

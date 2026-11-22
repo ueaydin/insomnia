@@ -3,7 +3,7 @@
 Bilgisayarı belirlediğin süre boyunca uyanık tutan küçük bir Windows programı.
 Süre dolunca istersen bilgisayarı kapatır, yeniden başlatır ya da hazırda bekletir.
 
-Sürüm: 1.0.0 · **Nihai sürüm**
+Sürüm: 1.1.0 · **Nihai sürüm**
 
 ## Ne yapar
 
@@ -11,7 +11,7 @@ Sürüm: 1.0.0 · **Nihai sürüm**
 - **Süre bitince:** bir şey yapma, bilgisayarı kapat, yeniden başlat, hazırda beklet.
 - **Sesli uyarı:** süre dolunca iki kısa bip.
 - **Ekranı kapat:** düğmeyle ya da oturum başlarken; ikisinde de 10 saniyelik, vazgeçilebilir geri sayım.
-- **Tepsi simgesi (saatin yanı):** ay simgesi. Hazırken gri, çalışırken altın, son dakikalarda bitiş işleminin rengi.
+- **Tepsi simgesi (saatin yanı):** ay simgesi. Hazırken gri; çalışırken altın ve çevresinde kalan süreyi gösteren halka; son dakikalarda bitiş işleminin rengi.
   Menüsünde hızlı başlatma, durdurma, Windows açılışında çalıştırma, dil ve çıkış var.
 - **Diller:** Türkçe, İngilizce, Almanca, Fransızca, İspanyolca.
 
@@ -24,6 +24,8 @@ Sürüm: 1.0.0 · **Nihai sürüm**
 - **Tepsiden hızlı başlatma** yalnız uyanık tutar; bitişte hiçbir işlem yapmaz.
 - Oturum sürerken bilgisayar elle uyutulursa oturum **bitiş işlemi yapılmadan** durur.
 - Pencereyi kapatmak (×) programı kapatmaz, tepsiye gizler. Çıkış tepsi menüsündedir.
+- **Ayarlar (dişli):** programın nerede görüneceği (saatin yanı + görev çubuğu, yalnız saatin yanı, yalnız görev çubuğu), dil ve Windows açılışında çalıştırma. "Yalnız görev çubuğunda" seçiliyken tepsi simgesi yoktur; × oturum sürerken pencereyi küçültür, boştayken programı kapatır.
+- Windows kapanırken ya da oturum kapatılırken program kapanmayı engellemez.
 - Ayarlar `%APPDATA%\Insomnia\settings.json` dosyasında durur.
 
 ## Çalıştırma

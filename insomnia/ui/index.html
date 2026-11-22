@@ -77,7 +77,7 @@ button,input{font-family:inherit}
 .ana.baslat:hover{background:#2a70b0}
 .ana.baslat:disabled{background:#2c2c2f;border-color:#444;color:#777;cursor:default}
 .ana.durdur{border-color:#ff7b6b;color:#ff7b6b}
-#ekranD{min-width:108px;font-variant-numeric:tabular-nums}
+#ekranD{flex:1;min-width:0;font-variant-numeric:tabular-nums}
 .durum{margin-top:12px;font-size:12.5px;color:#cfcfcf;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .durum span.ek{color:#949494}
 .nokta{display:inline-block;width:7px;height:7px;border-radius:50%;background:#666;margin-right:6px;vertical-align:1px}
@@ -98,6 +98,24 @@ button,input{font-family:inherit}
 .biter{font-size:12.5px;color:#b8b8b8}
 .alt{position:absolute;left:0;bottom:14px;width:100%;padding:0 12px;text-align:center;font-size:13px;color:#b8b8b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ekranUyari{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);white-space:nowrap;padding:5px 12px;border-radius:3px;background:#3a3320;border:1px solid #e0b040;color:#e0b040;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ayarlar paneli */
+.pd button[aria-expanded=true]{background:rgba(255,255,255,.14);color:#e0b040}
+.panel{position:absolute;inset:30px 0 0 0;z-index:2;background:#1b1b1d;padding:2px 28px 16px 24px;display:flex;flex-direction:column;min-width:0}
+.panel h2{margin:0;font-size:18px;font-weight:700}
+.secim{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.secim button{height:30px;display:flex;align-items:center;gap:9px;padding:0 10px;border-radius:3px;border:1px solid #555;background:#3a3a3d;color:#e8e8e8;font-size:13px;cursor:pointer;text-align:left;min-width:0}
+.secim button:hover{background:#444448}
+.secim button::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;border:2px solid #949494}
+.secim button[aria-checked=true]{background:#1f5f99;border-color:#1f5f99;color:#fff;font-weight:600}
+.secim button[aria-checked=true]::before{border-color:#fff;background:#fff;box-shadow:inset 0 0 0 2px #1f5f99}
+.diller{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px}
+.diller button{height:28px;padding:0 7px;border-radius:3px;border:1px solid #555;background:#3a3a3d;color:#e8e8e8;font-size:13px;cursor:pointer}
+.diller button:hover{background:#444448}
+.diller button[aria-pressed=true]{background:#1f5f99;border-color:#1f5f99;color:#fff;font-weight:600}
+.panelAlt{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#949494;font-size:12.5px}
+
+
 
 /* bitiş işlemi uyarısı */
 .uyari{position:absolute;inset:0;z-index:5;background:rgba(17,17,19,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:0 40px}
@@ -155,6 +173,7 @@ button,input{font-family:inherit}
 
 <section class="sag">
 <div class="pd">
+<button id="ayarD" data-ta="settings" aria-expanded="false" aria-controls="panel"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg></button>
 <button id="kucult" data-ta="win_min"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
 <button id="kapat" data-ta="win_close"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
 </div>
@@ -169,6 +188,19 @@ button,input{font-family:inherit}
 </div>
 <div class="alt" id="alt"></div>
 <div id="ekranUyari" class="ekranUyari" role="status" hidden></div>
+<div id="panel" class="panel" hidden>
+<h2 data-t="settings"></h2>
+<div class="baslik" data-t="view"></div>
+<div class="secim" id="gorunum" role="radiogroup">
+<button role="radio" data-mod="both" aria-checked="false"><span class="tek" data-t="vis_both"></span></button>
+<button role="radio" data-mod="tray" aria-checked="false"><span class="tek" data-t="vis_tray"></span></button>
+<button role="radio" data-mod="taskbar" aria-checked="false"><span class="tek" data-t="vis_taskbar"></span></button>
+</div>
+<div class="baslik" data-t="lang_title"></div>
+<div class="diller" id="diller"></div>
+<div class="onay" style="margin-top:16px"><input id="acilis" type="checkbox"><label for="acilis" class="tek" data-t="tray_startup"></label></div>
+<div class="panelAlt"><span id="surum"></span></div>
+</div>
 </section>
 
 <div id="uyari" class="uyari" role="alertdialog" aria-labelledby="uyariMetin" hidden>
@@ -189,6 +221,7 @@ var IKON_DURDUR = '<svg aria-hidden="true" width="11" height="11" viewBox="0 0 2
 
 var api = null, T = {}, S = null, dilSurum = -1, hazirdaVar = true;
 var secim = { infinite: false, action: 'none' };
+var gorunum = 'both', acilis = false, surum = '';
 var sinir = { min: 1, max: 1440 };
 var hataMesaji = false;
 
@@ -227,6 +260,31 @@ function metinleriUygula() {
   $('islemler').setAttribute('aria-label', t('on_end'));
   var hz = document.querySelector('#islemler [data-islem=hibernate]');
   hz.title = hazirdaVar ? t('act_hibernate') : t('hib_unavailable');
+  $('gorunum').setAttribute('aria-label', t('view'));
+  panelCiz();
+}
+
+function panelCiz() {
+  document.querySelectorAll('#gorunum button').forEach(function (b) {
+    b.setAttribute('aria-checked', b.getAttribute('data-mod') === gorunum ? 'true' : 'false');
+  });
+  document.querySelectorAll('#diller button').forEach(function (b) {
+    b.setAttribute('aria-pressed', b.getAttribute('data-dil') === T._lang ? 'true' : 'false');
+  });
+  $('acilis').checked = acilis;
+  yaz($('surum'), t('version', { v: surum }));
+  kapatIpucu();
+}
+
+// Tepsi simgesi yokken × pencereyi gizlemez: oturum sürüyorsa küçültür, boştayken programı kapatır.
+function kapatIpucu() {
+  var m = gorunum !== 'taskbar' ? T.win_close : (S && S.phase !== 'idle' ? T.win_min : T.tray_exit);
+  if ($('kapat').title !== m) { $('kapat').title = m; $('kapat').setAttribute('aria-label', m); }
+}
+
+function paneliAc(ac) {
+  $('panel').hidden = !ac;
+  $('ayarD').setAttribute('aria-expanded', ac ? 'true' : 'false');
 }
 
 function secimiCiz() {
@@ -312,6 +370,7 @@ function calisanCiz() {
 }
 
 function ortakCiz() {
+  kapatIpucu();
   var say = S && S.screen_in > 0;
   yaz($('ekranD'), say ? t('cancel_n', { n: S.screen_in }) : t('screen_btn'));
   $('ekranUyari').hidden = !say;
@@ -339,6 +398,17 @@ function durumAl(s) { if (s) { S = s; ciz(); } }
 function ilkYukle(veri) {
   T = veri.texts; T._lang = veri.lang; dilSurum = veri.lang_rev;
   hazirdaVar = veri.hibernate; sinir = veri.limits;
+  gorunum = veri.visibility; acilis = veri.startup; surum = veri.version;
+  if (!$('diller').childElementCount) {
+    veri.languages.forEach(function (d) {
+      var b = document.createElement('button');
+      b.setAttribute('data-dil', d.code); b.setAttribute('lang', d.code); b.textContent = d.name;
+      b.addEventListener('click', function () {
+        api.set_language(d.code).then(function () { return api.init(); }).then(ilkYukle);
+      });
+      $('diller').appendChild(b);
+    });
+  }
   if (S === null) {
     secim.infinite = veri.prefs.infinite;
     $('ozel').value = veri.prefs.infinite ? '' : veri.prefs.minutes;
@@ -410,6 +480,16 @@ function kur() {
   $('uyariVazgec').addEventListener('click', function () { api.cancel_action().then(durumAl); });
   $('kucult').addEventListener('click', function () { api.minimize(); });
   $('kapat').addEventListener('click', function () { api.hide(); });
+  $('ayarD').addEventListener('click', function () { paneliAc($('panel').hidden); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('panel').hidden) paneliAc(false); });
+  document.querySelectorAll('#gorunum button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      api.set_visibility(b.getAttribute('data-mod')).then(function (mod) { gorunum = mod; panelCiz(); });
+    });
+  });
+  $('acilis').addEventListener('change', function () {
+    api.set_startup($('acilis').checked).then(function (acik) { acilis = acik; panelCiz(); });
+  });
 
   document.querySelectorAll('#hazirlar button').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -439,7 +519,11 @@ function kur() {
 
   api.init().then(function (veri) {
     ilkYukle(veri);
-    api.fit(window.innerWidth, window.innerHeight, window.devicePixelRatio);
+    var olc = function () { api.fit(window.innerWidth, window.innerHeight, window.devicePixelRatio); };
+    olc();
+    // Küçültülmüş başlayınca ilk ölçü geçersizdir; pencere açılınca yeniden bildirilir (bir kez uygulanır).
+    window.addEventListener('resize', olc);
+    document.addEventListener('visibilitychange', olc);
     setInterval(yokla, 500);
   });
 }

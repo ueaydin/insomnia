@@ -115,6 +115,40 @@ class Icons(unittest.TestCase):
         self.assertGreater(alpha.getpixel((50, 13)), 200, "yıldız dolu olmalı")
         self.assertEqual(icons.app_icon(256).size, (256, 256))
 
+class VisibilityTests(unittest.TestCase):
+    def test_default_is_both(self):
+        self.assertEqual(settings.clean({})["visibility"], "both")
+
+    def test_valid_values_are_kept(self):
+        for mode in settings.VISIBILITY:
+            self.assertEqual(settings.clean({"visibility": mode})["visibility"], mode)
+
+    def test_invalid_values_fall_back(self):
+        for bad in ("none", "", None, 3, ["tray"]):
+            self.assertEqual(settings.clean({"visibility": bad})["visibility"], "both")
+
+class RingIconTests(unittest.TestCase):
+    def test_step_bounds(self):
+        self.assertEqual(icons.ring_step(0, 600), 0)
+        self.assertEqual(icons.ring_step(600, 600), icons.RING_STEPS)
+        self.assertEqual(icons.ring_step(1, 600), 1)
+        self.assertEqual(icons.ring_step(300, 600), icons.RING_STEPS // 2)
+        self.assertEqual(icons.ring_step(5, 0), 0)
+        self.assertEqual(icons.ring_step(0, 0, infinite=True), icons.RING_STEPS)
+
+    def test_ring_shrinks_clockwise_from_top(self):
+        full = icons.ring_moon(icons.GOLD, icons.RING_STEPS, 64)
+        half = icons.ring_moon(icons.GOLD, icons.RING_STEPS // 2, 64)
+        self.assertEqual(full.size, (64, 64))
+
+        def near(image, xy, color):  # küçültme renkleri bir iki birim oynatır
+            return all(abs(a - b) <= 6 for a, b in zip(image.getpixel(xy)[:3], color))
+
+        self.assertTrue(near(full, (3, 32), icons.GOLD))   # sol: dolu halkada altın
+        self.assertTrue(near(half, (60, 32), icons.GOLD))  # sağ: ilk yarı duruyor
+        self.assertTrue(near(half, (3, 32), icons.TRACK))  # sol: ikinci yarı bitti
+        self.assertTrue(near(icons.ring_moon(icons.GOLD, 0, 64), (60, 32), icons.TRACK))
+
 
 if __name__ == "__main__":
     unittest.main()

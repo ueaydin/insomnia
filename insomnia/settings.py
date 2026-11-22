@@ -15,6 +15,8 @@ from . import APP_NAME
 MIN_MINUTES = 1
 MAX_MINUTES = 1440
 LANGUAGES = ("tr", "en", "de", "fr", "es")
+# Program nerede görünsün: ikisi de, yalnız saatin yanı (tepsi), yalnız görev çubuğu
+VISIBILITY = ("both", "tray", "taskbar")
 
 DEFAULTS = {
     "duration_minutes": 60,
@@ -22,6 +24,7 @@ DEFAULTS = {
     "sound_enabled": True,
     "monitor_off": False,
     "language": "tr",
+    "visibility": "both",
     "tray_hint_shown": False,
 }
 
@@ -52,6 +55,8 @@ def clean(data) -> dict:
             out[key] = data[key]
     if data.get("language") in LANGUAGES:
         out["language"] = data["language"]
+    if data.get("visibility") in VISIBILITY:
+        out["visibility"] = data["visibility"]
     return out
 
 
