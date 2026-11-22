@@ -1,9 +1,15 @@
 # Insomnia: Ulanzi D200 eklentisi
 
+**Türkçe** · [English](README.en.md)
+
 Insomnia'yı Ulanzi D200 tuşlarından yönetmek için Ulanzi Studio eklentisi. Insomnia 1.2.0 ve
 sonrası gerekir (kumanda kapısı o sürümde geldi).
 
 Sürüm: 1.1.0
+
+![Ulanzi D200 tuşları](../docs/ulanzi-keys.png)
+
+Tuş yazıları Insomnia'nın diline göre Türkçe ya da İngilizce çıkar (görüntü İngilizce halinden).
 
 ## Tuşlar
 

@@ -1,5 +1,7 @@
 # Insomnia
 
+**Türkçe** · [English](README.en.md)
+
 Bilgisayarı belirlediğin süre boyunca uyanık tutan küçük bir Windows programı.
 Süre dolunca istersen bilgisayarı kapatır, yeniden başlatır, uyku moduna alır ya da hazırda bekletir.
 
@@ -8,6 +10,18 @@ Süre dolunca istersen bilgisayarı kapatır, yeniden başlatır, uyku moduna al
 ve bitişte ne olacağı seçilir. Cihazı olmayanlar için program tek başına da eksiksiz çalışır.
 
 Sürüm: 1.4.0 · **Nihai sürüm**
+
+![Insomnia penceresi, hazır](docs/window-idle.png)
+
+| Çalışırken | Son dakika |
+| --- | --- |
+| ![Oturum sürüyor](docs/window-running.png) | ![60 saniyelik uyarı](docs/window-warning.png) |
+
+Ulanzi D200'de:
+
+![Ulanzi D200 tuşları](docs/ulanzi-keys.png)
+
+Görüntüler programın İngilizce halinden alındı; program Türkçe de çalışır.
 
 ## Ne yapar
 
