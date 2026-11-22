@@ -3,7 +3,11 @@
 Bilgisayarı belirlediğin süre boyunca uyanık tutan küçük bir Windows programı.
 Süre dolunca istersen bilgisayarı kapatır, yeniden başlatır, uyku moduna alır ya da hazırda bekletir.
 
-Sürüm: 1.4.0
+**Ulanzi D200 için hazırlandı:** program, Ulanzi D200 tuş takımından yönetilebilir. Eklentisi bu depoda
+(`ulanzi` klasörü) ve kurulum paketinin içinde gelir; tuşlardan oturum başlatılır, durdurulur, süre eklenir
+ve bitişte ne olacağı seçilir. Cihazı olmayanlar için program tek başına da eksiksiz çalışır.
+
+Sürüm: 1.4.0 · **Nihai sürüm**
 
 ## Ne yapar
 
