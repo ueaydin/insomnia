@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Insomnia</title>
+<style>
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;overflow:hidden;background:#1b1b1d;color:#e8e8e8;font-family:"Segoe UI",Arial,sans-serif;font-size:13.5px;line-height:1.3;user-select:none;-webkit-user-select:none;cursor:default}
+button,input{font-family:inherit}
+[hidden]{display:none!important}
+.pencere{position:relative;width:100%;height:100%;display:flex;border:1px solid #3a3a3d}
+.tasi{position:absolute;top:0;left:0;right:80px;height:30px;z-index:2}
+.sol{width:330px;flex:none;padding:20px 24px 16px 30px;display:flex;flex-direction:column;min-width:0}
+.marka{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:700;letter-spacing:-.3px}
+.baslik{margin-top:14px;font-size:12px;font-weight:700;letter-spacing:.04em;color:#949494}
+.tek{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+
+/* giriş */
+.secenek{margin-top:8px;display:flex;gap:4px}
+.secenek button{flex:1;height:28px;border-radius:3px;border:1px solid #555;background:#3a3a3d;color:#e8e8e8;font-size:13.5px;cursor:pointer;padding:0;white-space:nowrap}
+.secenek button:hover{background:#444448}
+.secenek button[aria-pressed=true]{background:#1f5f99;border-color:#1f5f99;color:#fff;font-weight:600}
+.satir{margin-top:8px;display:flex;align-items:center;gap:8px;color:#b8b8b8}
+.girdi{height:28px;border-radius:2px;border:1px solid #555;background:#1e1e1e;color:#e8e8e8;font-size:13.5px;padding:2px 6px;user-select:text;-webkit-user-select:text}
+.girdi:focus{outline:1px solid #6cb0ee;border-color:#6cb0ee}
+.girdi.hatali{border-color:#ff7b6b}
+.adim{display:flex;flex:none}
+.adim button{width:28px;height:28px;border:1px solid #555;background:#3a3a3d;color:#e8e8e8;font-size:16px;line-height:1;cursor:pointer;padding:0}
+.adim button:first-child{border-radius:3px 0 0 3px}
+.adim button:last-child{border-radius:0 3px 3px 0}
+.adim button:hover{background:#444448}
+.adim .girdi{width:52px;border-radius:0;border-left:0;border-right:0;text-align:center}
+.islemler{margin-top:8px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px}
+.islemler button{height:28px;display:flex;align-items:center;gap:7px;padding:0 8px;border-radius:3px;border:1px solid #555;background:#3a3a3d;color:#e8e8e8;font-size:12.5px;cursor:pointer;text-align:left;min-width:0}
+.islemler button:hover{background:#444448}
+.islemler button svg{flex:none;color:#949494}
+.islemler button[aria-checked=true]{background:#1f5f99;border-color:#1f5f99;color:#fff;font-weight:600}
+.islemler button[aria-checked=true] svg{color:#fff}
+.islemler button[data-islem=shutdown][aria-checked=true]{background:#3d2220;border-color:#ff7b6b;color:#ff7b6b}
+.islemler button[data-islem=shutdown][aria-checked=true] svg{color:#ff7b6b}
+.islemler button[data-islem=restart][aria-checked=true]{background:#3a2f1c;border-color:#f0a94a;color:#f0a94a}
+.islemler button[data-islem=restart][aria-checked=true] svg{color:#f0a94a}
+.islemler button[data-islem=hibernate][aria-checked=true]{background:#1e2c3a;border-color:#6cb0ee;color:#6cb0ee}
+.islemler button[data-islem=hibernate][aria-checked=true] svg{color:#6cb0ee}
+.islemler button:disabled{color:#666;border-color:#3a3a3d;background:#2c2c2f;cursor:default;font-weight:400}
+.islemler button:disabled svg{color:#555}
+.onay{margin-top:8px;display:flex;align-items:center;gap:9px}
+.onay label{cursor:pointer}
+.onay input{appearance:none;-webkit-appearance:none;flex:none;width:30px;height:16px;margin:0;border-radius:8px;background:#4d4d4d;position:relative;cursor:pointer;transition:background .15s}
+.onay input::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#e8e8e8;transition:left .15s}
+.onay input:checked{background:#1f5f99}
+.onay input:checked::after{left:16px}
+.onay input:focus-visible,button:focus-visible{outline:2px solid #6cb0ee;outline-offset:2px}
+
+/* oturum */
+.ozet{margin-top:9px;display:grid;grid-template-columns:116px minmax(0,1fr);gap:9px 8px;align-items:center}
+.ozet .ad{display:flex;align-items:center;gap:7px;color:#949494;min-width:0}
+.ozet .ad svg{flex:none}
+.zaman{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:10px 12px;background:#232326;border:1px solid #38383b;border-radius:3px}
+.zk{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#949494}
+.zs{font-size:20px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+.zorta{flex:1;min-width:0;text-align:center}
+.zsure{font-size:12px;font-weight:600;color:#e0b040}
+.zcizgi{margin-top:5px;height:3px;border-radius:2px;background:#3a3a3d}
+.zcizgi div{height:3px;border-radius:2px;background:#e0b040;width:0}
+.rozet{display:inline-block;max-width:100%;padding:2px 8px;border-radius:3px;font-size:12.5px;font-weight:600;color:#cfcfcf;background:color-mix(in srgb,currentColor 13%,transparent);border:1px solid color-mix(in srgb,currentColor 45%,transparent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+.ipucu{margin-top:14px;font-size:12.5px;color:#949494;display:flex;align-items:center;gap:6px}
+.ipucu svg{flex:none}
+
+/* alt */
+.dugmeler{margin-top:auto;display:flex;gap:8px}
+.dugme{height:34px;padding:0 14px;border-radius:3px;border:1px solid #555;background:#3a3a3d;color:#e8e8e8;font-size:13.5px;cursor:pointer;white-space:nowrap}
+.dugme:hover{background:#444448}
+.ana{flex:1;min-width:0;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:7px}
+.ana.baslat{border-color:#1f5f99;background:#1f5f99;color:#fff}
+.ana.baslat:hover{background:#2a70b0}
+.ana.baslat:disabled{background:#2c2c2f;border-color:#444;color:#777;cursor:default}
+.ana.durdur{border-color:#ff7b6b;color:#ff7b6b}
+#ekranD{min-width:108px;font-variant-numeric:tabular-nums}
+.durum{margin-top:12px;font-size:12.5px;color:#cfcfcf;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.durum span.ek{color:#949494}
+.nokta{display:inline-block;width:7px;height:7px;border-radius:50%;background:#666;margin-right:6px;vertical-align:1px}
+.ince{margin-top:8px;height:3px;border-radius:2px;background:#333336;flex:none}
+.ince div{height:3px;border-radius:2px;background:#e0b040;width:0}
+
+/* sağ */
+.sag{flex:1;position:relative;overflow:hidden;min-width:0}
+.pd{position:absolute;top:0;right:0;display:flex;z-index:3}
+.pd button{width:40px;height:30px;border:0;background:transparent;color:#b8b8b8;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pd button:hover{background:rgba(255,255,255,.12)}
+.pd button#kapat:hover{background:#c42b1c;color:#fff}
+.kadran{position:absolute;top:26px;left:50%;width:340px;height:340px;margin-left:-170px}
+.kadran svg{position:absolute;inset:0}
+.orta{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-align:center;padding:0 46px}
+.ust{font-size:11.5px;font-weight:700;letter-spacing:.08em;color:#949494}
+.sure{font-size:54px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums;color:#f3e6d0}
+.biter{font-size:12.5px;color:#b8b8b8}
+.alt{position:absolute;left:0;bottom:14px;width:100%;padding:0 12px;text-align:center;font-size:13px;color:#b8b8b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ekranUyari{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);white-space:nowrap;padding:5px 12px;border-radius:3px;background:#3a3320;border:1px solid #e0b040;color:#e0b040;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* bitiş işlemi uyarısı */
+.uyari{position:absolute;inset:0;z-index:5;background:rgba(17,17,19,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:0 40px}
+.uyari .sayi{font-size:96px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.uyari .metin{font-size:20px;font-weight:700}
+.uyari .not{color:#b8b8b8}
+.uyari button{margin-top:12px;height:44px;padding:0 44px;border-radius:3px;border:1px solid #e8e8e8;background:#e8e8e8;color:#1b1b1d;font-size:16px;font-weight:700;cursor:pointer}
+.uyari button:hover{background:#fff}
+@media (prefers-reduced-motion:reduce){.onay input,.onay input::after{transition:none}}
+</style>
+</head>
+<body>
+<div class="pencere">
+<div class="tasi pywebview-drag-region"></div>
+
+<section class="sol">
+<div class="marka"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" style="flex:none;filter:drop-shadow(0 0 4px rgba(224,176,64,.4))"><defs><linearGradient id="ayG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8dd8a"></stop><stop offset=".55" stop-color="#e0b040"></stop><stop offset="1" stop-color="#b07f22"></stop></linearGradient><mask id="ayM"><rect width="32" height="32" fill="#fff"></rect><circle cx="20" cy="12.5" r="9" fill="#000"></circle></mask></defs><circle cx="14" cy="17.5" r="11" fill="url(#ayG)" mask="url(#ayM)"></circle><path d="M22.5 5.5l1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1z" fill="#f3e6d0"></path><path d="M27.5 13.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" fill="#f3e6d0"></path></svg><div>Insomnia</div></div>
+
+<div id="ayar">
+<div class="baslik" data-t="duration"></div>
+<div class="secenek" id="hazirlar">
+<button data-dk="15" data-t="p15" aria-pressed="false"></button>
+<button data-dk="30" data-t="p30" aria-pressed="false"></button>
+<button data-dk="60" data-t="p60" aria-pressed="false"></button>
+<button data-dk="120" data-t="p120" aria-pressed="false"></button>
+<button data-dk="0" data-ta="infinite" aria-pressed="false">∞</button>
+</div>
+<div class="satir"><label for="ozel" class="tek" data-t="custom"></label><div class="adim"><button id="eksi" data-ta="dec">−</button><input id="ozel" class="girdi" type="text" inputmode="numeric" maxlength="4" autocomplete="off"><button id="arti" data-ta="inc">+</button></div><span class="tek" data-t="minutes"></span></div>
+<div class="baslik" data-t="on_end"></div>
+<div class="islemler" id="islemler" role="radiogroup">
+<button role="radio" data-islem="none" aria-checked="true"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg><span class="tek" data-t="act_none"></span></button>
+<button role="radio" data-islem="shutdown" aria-checked="false"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v9"></path><path d="M6.3 6.8a8 8 0 1 0 11.4 0"></path></svg><span class="tek" data-t="act_shutdown"></span></button>
+<button role="radio" data-islem="restart" aria-checked="false"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"></path><path d="M20 4v5h-5"></path></svg><span class="tek" data-t="act_restart"></span></button>
+<button role="radio" data-islem="hibernate" aria-checked="false"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20 13.5A8 8 0 1 1 10.5 4a6.5 6.5 0 0 0 9.5 9.5z"></path></svg><span class="tek" data-t="act_hibernate"></span></button>
+</div>
+<div class="onay" style="margin-top:12px"><input id="ses" type="checkbox"><label for="ses" class="tek" data-t="sound"></label></div>
+<div class="onay"><input id="ekran" type="checkbox"><label for="ekran" class="tek" data-t="screen_opt"></label></div>
+</div>
+
+<div id="oturum" hidden>
+<div class="baslik" style="margin-top:20px" data-t="session"></div>
+<div class="ozet">
+<div class="zaman"><div><div class="zk" data-t="started"></div><div class="zs" id="oBasla"></div></div><div class="zorta"><div class="zsure tek" id="oSure"></div><div class="zcizgi"><div id="oCizgi"></div></div></div><div style="text-align:right"><div class="zk" data-t="ends"></div><div class="zs" id="oBitis"></div></div></div>
+<div class="ad"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"></path><path d="M5 4h13l-3 4.5 3 4.5H5"></path></svg><span class="tek" data-t="s_on_end"></span></div><div><span class="rozet" id="oIslem"></span></div>
+<div class="ad"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"></path><path d="M16.5 8.5a5 5 0 0 1 0 7"></path></svg><span class="tek" data-t="s_sound"></span></div><div><span class="rozet" id="oSes"></span></div>
+<div class="ad"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"></rect><path d="M9 20h6M12 16v4"></path></svg><span class="tek" data-t="s_screen"></span></div><div><span class="rozet" id="oEkran"></span></div>
+</div>
+<div class="ipucu"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="1.5"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span class="tek" data-t="locked"></span></div>
+</div>
+
+<div class="dugmeler"><button id="ana" class="dugme ana baslat" disabled></button><button id="ekranD" class="dugme"></button></div>
+<div class="durum" id="durum"><span id="nokta" class="nokta"></span><span id="durumAd"></span> <span class="ek" id="durumEk"></span></div>
+<div class="ince"><div id="cubuk"></div></div>
+</section>
+
+<section class="sag">
+<div class="pd">
+<button id="kucult" data-ta="win_min"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+<button id="kapat" data-ta="win_close"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+<div class="kadran">
+<svg aria-hidden="true" width="340" height="340" viewBox="0 0 340 340" fill="none">
+<circle cx="170" cy="170" r="150" stroke="#333336" stroke-width="12" stroke-linecap="round" stroke-dasharray="706.9 942.5" transform="rotate(135 170 170)"></circle>
+<circle id="yay" cx="170" cy="170" r="150" stroke="#e0b040" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 942.5" transform="rotate(135 170 170)" visibility="hidden"></circle>
+<text id="t1" x="64" y="318" fill="#b8b8b8" font-size="12.5" text-anchor="middle"></text>
+<text id="t2" x="276" y="318" fill="#b8b8b8" font-size="12.5" text-anchor="middle"></text>
+</svg>
+<div class="orta"><div class="ust" id="ust"></div><div class="sure" id="sayac">--:--:--</div><div class="biter" id="biter"></div></div>
+</div>
+<div class="alt" id="alt"></div>
+<div id="ekranUyari" class="ekranUyari" role="status" hidden></div>
+</section>
+
+<div id="uyari" class="uyari" role="alertdialog" aria-labelledby="uyariMetin" hidden>
+<div class="sayi" id="uyariSayi"></div>
+<div class="metin" id="uyariMetin"></div>
+<div class="not" data-t="warn_hint"></div>
+<button id="uyariVazgec" data-t="warn_cancel"></button>
+</div>
+</div>
+
+<script>
+'use strict';
+var $ = function (id) { return document.getElementById(id); };
+var RENK = { none: '#b8b8b8', shutdown: '#ff7b6b', restart: '#f0a94a', hibernate: '#6cb0ee' };
+var ALTIN = '#e0b040';
+var IKON_BASLAT = '<svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8z"></path></svg>';
+var IKON_DURDUR = '<svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg>';
+
+var api = null, T = {}, S = null, dilSurum = -1, hazirdaVar = true;
+var secim = { infinite: false, action: 'none' };
+var sinir = { min: 1, max: 1440 };
+var hataMesaji = false;
+
+function t(anahtar, deger) {
+  var s = T[anahtar] || anahtar;
+  if (deger) for (var k in deger) s = s.replace('{' + k + '}', deger[k]);
+  return s;
+}
+function iki(n) { return (n < 10 ? '0' : '') + n; }
+function saatYaz(d) { return iki(d.getHours()) + ':' + iki(d.getMinutes()); }
+function sayacYaz(sn) { return iki(Math.floor(sn / 3600)) + ':' + iki(Math.floor(sn % 3600 / 60)) + ':' + iki(sn % 60); }
+function sureAd(dk) {
+  var s = Math.floor(dk / 60), d = dk % 60, p = [];
+  if (s) p.push(s + ' ' + t('unit_h'));
+  if (d) p.push(d + ' ' + t('unit_m'));
+  return p.join(' ');
+}
+function dakika() {
+  var m = $('ozel').value.trim();
+  if (!/^\d+$/.test(m)) return null;
+  var n = parseInt(m, 10);
+  return n >= sinir.min && n <= sinir.max ? n : null;
+}
+function yaz(el, metin) { if (el.textContent !== metin) el.textContent = metin; }
+
+function metinleriUygula() {
+  document.documentElement.lang = T._lang || 'tr';
+  document.querySelectorAll('[data-t]').forEach(function (e) {
+    e.textContent = t(e.getAttribute('data-t'));
+    if (e.classList.contains('tek')) e.title = e.textContent;
+  });
+  document.querySelectorAll('[data-ta]').forEach(function (e) {
+    var m = t(e.getAttribute('data-ta'));
+    e.setAttribute('aria-label', m); e.title = m;
+  });
+  $('islemler').setAttribute('aria-label', t('on_end'));
+  var hz = document.querySelector('#islemler [data-islem=hibernate]');
+  hz.title = hazirdaVar ? t('act_hibernate') : t('hib_unavailable');
+}
+
+function secimiCiz() {
+  var dk = dakika();
+  document.querySelectorAll('#hazirlar button').forEach(function (b) {
+    var v = b.getAttribute('data-dk');
+    b.setAttribute('aria-pressed', (v === '0' ? secim.infinite : (!secim.infinite && String(dk) === v)) ? 'true' : 'false');
+  });
+  document.querySelectorAll('#islemler button').forEach(function (b) {
+    var ad = b.getAttribute('data-islem');
+    b.setAttribute('aria-checked', ad === secim.action ? 'true' : 'false');
+    b.disabled = secim.infinite || (ad === 'hibernate' && !hazirdaVar);
+  });
+}
+
+function hazirCiz() {
+  var dk = secim.infinite ? null : dakika(), gecerli = secim.infinite || dk !== null;
+  $('ayar').hidden = false; $('oturum').hidden = true;
+  secimiCiz();
+  $('ozel').classList.toggle('hatali', !gecerli);
+  $('ana').disabled = !gecerli;
+  $('ana').className = 'dugme ana baslat';
+  $('ana').innerHTML = IKON_BASLAT + '<span></span>';
+  $('ana').lastChild.textContent = t('start');
+  yaz($('ust'), t('dial_ready')); $('ust').style.color = '#949494';
+  $('sayac').style.color = '';
+  $('yay').setAttribute('visibility', 'hidden');
+  yaz($('t1'), ''); yaz($('t2'), '');
+  $('cubuk').style.width = '0';
+  $('nokta').style.background = '';
+  yaz($('durumAd'), t('ready'));
+  var ek = '· ' + t('msg_' + (hataMesaji ? 'failed' : (S && S.message !== 'running' ? S.message : 'never')));
+  yaz($('durumEk'), ek); $('durum').title = t('ready') + ' ' + ek;
+  if (secim.infinite) {
+    yaz($('sayac'), '∞'); yaz($('biter'), t('until_stop'));
+    yaz($('alt'), t('end_infinite')); $('alt').style.color = RENK.none;
+  } else {
+    if (dk === null) { yaz($('sayac'), '--:--:--'); yaz($('biter'), t('enter_valid')); }
+    else { yaz($('sayac'), sayacYaz(dk * 60)); yaz($('biter'), t('ends_if', { t: saatYaz(new Date(Date.now() + dk * 60000)) })); }
+    yaz($('alt'), t('end_' + secim.action)); $('alt').style.color = RENK[secim.action];
+  }
+}
+
+function calisanCiz() {
+  var suresiz = S.infinite, islem = S.action;
+  var oran = suresiz || !S.total ? 0 : Math.min(1, (S.total - S.remaining) / S.total);
+  if (S.phase === 'warning') oran = 1;
+  var renk = S.ending ? RENK[islem] : ALTIN;
+  $('ayar').hidden = true; $('oturum').hidden = false;
+  $('ana').disabled = false;
+  $('ana').className = 'dugme ana durdur';
+  $('ana').innerHTML = IKON_DURDUR + '<span></span>';
+  $('ana').lastChild.textContent = t('stop');
+
+  yaz($('oSure'), suresiz ? t('infinite') : sureAd(Math.round(S.total / 60)));
+  yaz($('oBasla'), S.started); yaz($('oBitis'), suresiz ? '—' : S.ends);
+  yaz($('oIslem'), suresiz ? '—' : t('act_' + islem));
+  $('oIslem').style.color = !suresiz && islem !== 'none' ? RENK[islem] : '';
+  yaz($('oSes'), t(S.sound ? 'on' : 'off'));
+  $('oSes').style.color = S.sound ? '#6fcf75' : '#949494';
+  yaz($('oEkran'), t(S.monitor_off ? 'screen_goes' : 'screen_stays'));
+  $('oCizgi').style.width = (oran * 100).toFixed(2) + '%';
+  $('oCizgi').style.background = renk;
+
+  yaz($('ust'), t(suresiz ? 'dial_elapsed' : 'dial_remaining')); $('ust').style.color = renk;
+  yaz($('sayac'), sayacYaz(suresiz ? S.elapsed : S.remaining));
+  $('sayac').style.color = S.ending ? renk : '';
+  yaz($('biter'), t('awake'));
+  $('yay').setAttribute('stroke', renk);
+  $('yay').style.filter = 'drop-shadow(0 0 5px ' + renk + '66)';
+  $('yay').setAttribute('stroke-dasharray', (706.9 * oran).toFixed(1) + ' 942.5');
+  $('yay').setAttribute('visibility', oran > 0 ? 'visible' : 'hidden');
+  yaz($('t1'), suresiz ? '' : S.started); yaz($('t2'), suresiz ? '' : S.ends);
+  yaz($('alt'), suresiz ? t('end_infinite') : t('end_' + islem));
+  $('alt').style.color = suresiz ? RENK.none : RENK[islem];
+
+  $('cubuk').style.width = (oran * 100).toFixed(2) + '%';
+  $('cubuk').style.background = renk;
+  $('nokta').style.background = '#6fcf75';
+  yaz($('durumAd'), t('awake'));
+  var ek = '· ' + t('elapsed', { m: Math.floor(S.elapsed / 60), s: S.elapsed % 60 });
+  yaz($('durumEk'), ek); $('durum').title = t('awake') + ' ' + ek;
+}
+
+function ortakCiz() {
+  var say = S && S.screen_in > 0;
+  yaz($('ekranD'), say ? t('cancel_n', { n: S.screen_in }) : t('screen_btn'));
+  $('ekranUyari').hidden = !say;
+  if (say) yaz($('ekranUyari'), t('screen_in', { n: S.screen_in }));
+  $('alt').style.visibility = say ? 'hidden' : '';
+  var uyar = S && S.phase === 'warning';
+  if (uyar) {
+    yaz($('uyariSayi'), String(S.warn_in));
+    yaz($('uyariMetin'), t('warn_' + S.action, { n: S.warn_in }));
+    $('uyariSayi').style.color = RENK[S.action]; $('uyariMetin').style.color = RENK[S.action];
+    if ($('uyari').hidden) { $('uyari').hidden = false; $('uyariVazgec').focus(); }
+  } else {
+    $('uyari').hidden = true;
+  }
+}
+
+function ciz() {
+  if (!S) return;
+  if (S.phase === 'idle') hazirCiz(); else calisanCiz();
+  ortakCiz();
+}
+
+function durumAl(s) { if (s) { S = s; ciz(); } }
+
+function ilkYukle(veri) {
+  T = veri.texts; T._lang = veri.lang; dilSurum = veri.lang_rev;
+  hazirdaVar = veri.hibernate; sinir = veri.limits;
+  if (S === null) {
+    secim.infinite = veri.prefs.infinite;
+    $('ozel').value = veri.prefs.infinite ? '' : veri.prefs.minutes;
+    $('ses').checked = veri.prefs.sound; $('ekran').checked = veri.prefs.monitor_off;
+  }
+  metinleriUygula();
+  durumAl(veri.state);
+}
+
+function yokla() {
+  api.state().then(function (s) {
+    if (s.lang_rev !== dilSurum) return api.init().then(ilkYukle);
+    durumAl(s);
+  }).catch(function () {});
+}
+
+var hatirlaZ = null;
+function hatirla() {
+  clearTimeout(hatirlaZ);
+  hatirlaZ = setTimeout(function () {
+    api.remember({ minutes: dakika(), infinite: secim.infinite, sound: $('ses').checked, monitor_off: $('ekran').checked });
+  }, 400);
+}
+function degisti() { hataMesaji = false; if (S && S.phase === 'idle') { hazirCiz(); ortakCiz(); } hatirla(); }
+
+function adimla(fark) {
+  var n = dakika();
+  if (n === null) n = 0;
+  secim.infinite = false;
+  $('ozel').value = Math.min(sinir.max, Math.max(sinir.min, n + fark));
+  degisti();
+}
+var bekle = null, tekrar = null;
+function birak() { clearTimeout(bekle); clearInterval(tekrar); }
+function basiliTut(dugme, yon) {
+  dugme.addEventListener('pointerdown', function (e) {
+    if (e.button !== 0) return;
+    birak(); adimla(yon);
+    var sayi = 0;
+    bekle = setTimeout(function () {
+      tekrar = setInterval(function () { sayi++; adimla(yon * (sayi > 20 ? 5 : 1)); }, 80);
+    }, 400);
+  });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ad) { dugme.addEventListener(ad, birak); });
+  dugme.addEventListener('click', function (e) { if (e.detail === 0) adimla(yon); });
+}
+
+function baslatDurdur() {
+  if (!S) return;
+  if (S.phase !== 'idle') { api.stop().then(durumAl); return; }
+  var dk = secim.infinite ? null : dakika();
+  if (!secim.infinite && dk === null) return;
+  $('ana').disabled = true;
+  api.start({
+    minutes: dk, infinite: secim.infinite, action: secim.infinite ? 'none' : secim.action,
+    sound: $('ses').checked, monitor_off: $('ekran').checked
+  }).then(function (r) { hataMesaji = !r.ok; durumAl(r.state); });
+}
+
+function kur() {
+  api = window.pywebview.api;
+  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  window.addEventListener('error', function (e) { try { api.log(String(e.message) + ' @' + e.lineno); } catch (x) {} });
+
+  $('ana').addEventListener('click', baslatDurdur);
+  $('ekranD').addEventListener('click', function () {
+    (S && S.screen_in > 0 ? api.cancel_screen_off() : api.screen_off()).then(durumAl);
+  });
+  $('uyariVazgec').addEventListener('click', function () { api.cancel_action().then(durumAl); });
+  $('kucult').addEventListener('click', function () { api.minimize(); });
+  $('kapat').addEventListener('click', function () { api.hide(); });
+
+  document.querySelectorAll('#hazirlar button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var dk = b.getAttribute('data-dk');
+      secim.infinite = dk === '0';
+      $('ozel').value = secim.infinite ? '' : dk;
+      degisti();
+    });
+  });
+  document.querySelectorAll('#islemler button').forEach(function (b) {
+    b.addEventListener('click', function () { secim.action = b.getAttribute('data-islem'); degisti(); });
+  });
+  $('ses').addEventListener('change', degisti);
+  $('ekran').addEventListener('change', degisti);
+
+  var ozel = $('ozel');
+  ozel.addEventListener('input', function () { secim.infinite = false; degisti(); });
+  ozel.addEventListener('focus', function () { ozel.select(); });
+  ozel.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowUp') { e.preventDefault(); adimla(1); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); adimla(-1); }
+    if (e.key === 'Enter' && !$('ana').disabled) baslatDurdur();
+  });
+  ozel.addEventListener('wheel', function (e) { e.preventDefault(); adimla(e.deltaY < 0 ? 1 : -1); }, { passive: false });
+  basiliTut($('eksi'), -1);
+  basiliTut($('arti'), 1);
+
+  api.init().then(function (veri) {
+    ilkYukle(veri);
+    api.fit(window.innerWidth, window.innerHeight, window.devicePixelRatio);
+    setInterval(yokla, 500);
+  });
+}
+
+if (window.pywebview && window.pywebview.api) kur();
+else window.addEventListener('pywebviewready', kur);
+</script>
+</body>
+</html>
