@@ -5,7 +5,7 @@
 An Ulanzi Studio plugin for controlling Insomnia from the Ulanzi D200 keys. Requires Insomnia 1.2.0 or
 later (the control door arrived in that version).
 
-Version: 1.1.0
+Version: 1.1.1
 
 ![Ulanzi D200 keys](../docs/ulanzi-keys.png)
 

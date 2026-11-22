@@ -4,7 +4,7 @@
 
 Sürüm numarası insomnia/__init__.py içindeki __version__ değerinden okunur.
 Çıktı: dist\\Insomnia.exe (tek dosya, taşınabilir) ve Inno Setup 6 kuruluysa
-dist\\Insomnia-Kurulum-<sürüm>.exe (kurulum paketi; bkz. kurulum\\insomnia.iss).
+dist\\Insomnia-Setup-<sürüm>.exe (kurulum paketi; bkz. kurulum\\insomnia.iss).
 Exe adında sürüm yoktur; böylece "Başlangıçta çalıştır" kaydı yeni sürümde de aynı dosyayı gösterir.
 Ara dosyalar proje klasörüne değil geçici klasöre yazılır.
 """
@@ -54,7 +54,7 @@ def installer() -> int:
         print("Not: Inno Setup 6 bulunamadı; kurulum paketi üretilmedi (yalnız taşınabilir exe var).")
         return 0
     done = subprocess.run([iscc, "/Q", f"/DSurum={__version__}", os.path.join(ROOT, "kurulum", "insomnia.iss")])
-    target = os.path.join(ROOT, "dist", f"{APP_NAME}-Kurulum-{__version__}.exe")
+    target = os.path.join(ROOT, "dist", f"{APP_NAME}-Setup-{__version__}.exe")
     if done.returncode != 0 or not os.path.exists(target):
         print("HATA: kurulum paketi üretilemedi")
         return 1

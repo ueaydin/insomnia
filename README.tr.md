@@ -9,7 +9,7 @@ Süre dolunca istersen bilgisayarı kapatır, yeniden başlatır, uyku moduna al
 (`ulanzi` klasörü) ve kurulum paketinin içinde gelir; tuşlardan oturum başlatılır, durdurulur, süre eklenir
 ve bitişte ne olacağı seçilir. Cihazı olmayanlar için program tek başına da eksiksiz çalışır.
 
-Sürüm: 1.4.0 · **Nihai sürüm**
+Sürüm: 1.4.1 · **Nihai sürüm**
 
 ![Insomnia penceresi, hazır](docs/window-idle.png)
 
@@ -48,7 +48,7 @@ Görüntüler programın İngilizce halinden alındı; program Türkçe de çal�
 
 ## Kurulum
 
-`Insomnia-Kurulum-<sürüm>.exe` dosyasını çalıştır. Yönetici izni istemez; program
+`Insomnia-Setup-<sürüm>.exe` dosyasını çalıştır. Yönetici izni istemez; program
 `%LOCALAPPDATA%\Programs\Insomnia` altına kurulur. Kurulum şunları sorar:
 
 - **Ulanzi D200 eklentisini de kur** (yalnız bilgisayarda Ulanzi Studio varsa görünür)
@@ -104,7 +104,7 @@ python build.py
 ```
 
 `dist\Insomnia.exe` (tek dosya, taşınabilir) ve Inno Setup 6 kuruluysa
-`dist\Insomnia-Kurulum-<sürüm>.exe` (kurulum paketi, `kurulum\insomnia.iss`) oluşur. Sürüm numarası `insomnia/__init__.py` içindeki `__version__` değeridir.
+`dist\Insomnia-Setup-<sürüm>.exe` (kurulum paketi, `kurulum\insomnia.iss`) oluşur. Sürüm numarası `insomnia/__init__.py` içindeki `__version__` değeridir.
 
 ## Sınama
 
@@ -139,3 +139,8 @@ Bu değişken varken kapatma, yeniden başlatma, uyku, hazırda bekletme ve ekra
 | `insomnia/ui/index.html` | Arayüz (HTML, CSS, JavaScript tek dosyada) |
 | `tests/` | Zamanlayıcı, ayar ve çeviri sınamaları |
 | `build.py` | exe derleme |
+
+## Lisans
+
+[MIT](LICENSE). Ulanzi eklentisi, Ulanzi'nin geliştirme kitinden `plugin-common-node` (Apache-2.0) ve `ws` (MIT)
+kitaplıklarını içerir; lisans dosyaları yanlarında durur.

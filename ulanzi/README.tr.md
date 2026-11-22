@@ -5,7 +5,7 @@
 Insomnia'yı Ulanzi D200 tuşlarından yönetmek için Ulanzi Studio eklentisi. Insomnia 1.2.0 ve
 sonrası gerekir (kumanda kapısı o sürümde geldi).
 
-Sürüm: 1.1.0
+Sürüm: 1.1.1
 
 ![Ulanzi D200 tuşları](../docs/ulanzi-keys.png)
 
@@ -39,7 +39,8 @@ yeniden başlat:
 %APPDATA%\Ulanzi\UlanziDeck\Plugins
 ```
 
-Sonra Ulanzi Studio'da sağdaki listede "Insomnia" başlığından tuşları cihaza sürükle.
+Sonra Ulanzi Studio'da sağdaki listede "Insomnia" başlığından tuşları cihaza sürükle. Listedeki adlar İngilizcedir
+(Start / Stop, Time −, Time +, When done, Screen off); tuşların üstündeki yazılar Insomnia'nın diline göre çıkar.
 
 ## Nasıl çalışır
 

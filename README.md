@@ -9,7 +9,7 @@ When the time is up it can shut the computer down, restart it, put it to sleep o
 this repository (the `ulanzi` folder) and ships inside the installer; from the keys you start and stop a session,
 add time and choose what happens at the end. Without the device the program works fully on its own.
 
-Version: 1.4.0 · **Final release**
+Version: 1.4.1 · **Final release**
 
 ![Insomnia window, ready](docs/window-idle.png)
 
@@ -46,7 +46,7 @@ On the Ulanzi D200:
 
 ## Installing
 
-Run `Insomnia-Kurulum-<version>.exe` (the installer; it speaks English too). It needs no administrator rights;
+Run `Insomnia-Setup-<version>.exe` (the installer). It needs no administrator rights;
 the program is installed under `%LOCALAPPDATA%\Programs\Insomnia`. The installer asks:
 
 - **Also install the Ulanzi D200 plugin** (shown only if Ulanzi Studio is on the computer)
@@ -100,7 +100,7 @@ python build.py
 ```
 
 Produces `dist\Insomnia.exe` (single file, portable) and, if Inno Setup 6 is installed,
-`dist\Insomnia-Kurulum-<version>.exe` (the installer, from `kurulum\insomnia.iss`). The version number is
+`dist\Insomnia-Setup-<version>.exe` (the installer, from `kurulum\insomnia.iss`). The version number is
 `__version__` in `insomnia/__init__.py`.
 
 ## Testing
@@ -138,3 +138,8 @@ With this variable set, shut down, restart, sleep, hibernate and screen off are 
 | `build.py` | Builds the exe and the installer |
 
 The code comments and command names are in Turkish.
+
+## License
+
+[MIT](LICENSE). The Ulanzi plugin bundles `plugin-common-node` (Apache-2.0) and `ws` (MIT) from Ulanzi's SDK;
+their licence files are kept next to them.
