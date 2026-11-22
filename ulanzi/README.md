@@ -1,52 +1,50 @@
-# Insomnia: Ulanzi D200 eklentisi
+# Insomnia: Ulanzi D200 plugin
 
-**Türkçe** · [English](README.en.md)
+**English** · [Türkçe](README.tr.md)
 
-Insomnia'yı Ulanzi D200 tuşlarından yönetmek için Ulanzi Studio eklentisi. Insomnia 1.2.0 ve
-sonrası gerekir (kumanda kapısı o sürümde geldi).
+An Ulanzi Studio plugin for controlling Insomnia from the Ulanzi D200 keys. Requires Insomnia 1.2.0 or
+later (the control door arrived in that version).
 
-Sürüm: 1.1.0
+Version: 1.1.0
 
-![Ulanzi D200 tuşları](../docs/ulanzi-keys.png)
+![Ulanzi D200 keys](../docs/ulanzi-keys.png)
 
-Tuş yazıları Insomnia'nın diline göre Türkçe ya da İngilizce çıkar (görüntü İngilizce halinden).
+## Keys
 
-## Tuşlar
-
-| Tuş | Boştayken | Çalışırken | 60 sn'lik uyarıda |
+| Key | When idle | While running | During the 60 s warning |
 | --- | --- | --- | --- |
-| Başlat / Durdur | Seçili süreyi gösterir, basınca başlatır | Kalan süreyi gösterir, basınca durdurur | Kalan saniye; basınca vazgeçer |
-| Süre − / Süre + | Başlatılacak süreyi seçer (15 dk … 8 sa, süresiz; ilk seçim 15 dk). Gidemeyeceği yönde tuş soluk durur | 15 dk çıkarır / ekler | Etkisiz |
-| Bitince | Bitişte ne olacağını seçer (yok, kapat, yeniden başlat, uyut, hazırda beklet) | Çalışan oturumun bitişini değiştirir | "Şimdi yap": beklemeden uygular |
-| Ekranı Kapat | Ekranı 10 sn sonra kapatır; tekrar basınca iptal | aynı | aynı |
+| Start / Stop | Shows the chosen duration, press to start | Shows the time left, press to stop | Seconds left; press to cancel |
+| Time − / Time + | Chooses the duration to start with (15 min … 8 h, no limit; first choice 15 min). The key is dimmed in the direction it cannot go | Removes / adds 15 min | No effect |
+| When done | Chooses what happens at the end (nothing, shut down, restart, sleep, hibernate) | Changes the end action of the running session | "Now": does it without waiting |
+| Screen off | Turns the screen off after 10 s; press again to cancel | same | same |
 
-Eklenti yalnız kurulu Insomnia'nın yapabildiği bitiş işlemlerini sunar (örneğin uyku, Insomnia 1.3.0 ile geldi).
-Program açıldığı halde kumanda kapısı gelmezse (Insomnia 1.2.0'dan eskiyse) tuşlarda "Güncelle" yazar.
+The plugin only offers the end actions the installed Insomnia can do (sleep, for example, arrived with Insomnia 1.3.0).
+If the program starts but the control door never appears (Insomnia older than 1.2.0), the keys say "Update".
 
-Insomnia kapalıyken tuşlar "Kapalı" yazar. Bir tuşa basınca program tepside açılır; basılan
-tuş Başlat ya da Ekran ise istek program açılınca yerine getirilir.
+While Insomnia is closed the keys say "Closed". Pressing a key opens the program in the tray; if the key
+was Start or Screen, the request is carried out once the program is up.
 
-Uyarı başladıktan sonraki ilk 2 saniyede "Şimdi yap" çalışmaz (yanlışlıkla basmaya karşı).
+"Now" does not work in the first 2 seconds of the warning (against accidental presses).
 
-## Kurulum
+The key texts are in Turkish or English, following Insomnia's language; with German, French or Spanish they are in English.
 
-En kolayı Insomnia'nın kurulum paketi: "Ulanzi D200 eklentisini de kur" kutusunu işaretli bırak. Elle kurmak için:
+## Installing
 
-`com.ulanzi.ulanzistudio.insomnia.ulanziPlugin` klasörünü şuraya kopyala, Ulanzi Studio'yu
-yeniden başlat:
+The easy way is Insomnia's installer: leave "Also install the Ulanzi D200 plugin" ticked. To install by hand:
+
+copy the `com.ulanzi.ulanzistudio.insomnia.ulanziPlugin` folder here and restart Ulanzi Studio:
 
 ```
 %APPDATA%\Ulanzi\UlanziDeck\Plugins
 ```
 
-Sonra Ulanzi Studio'da sağdaki listede "Insomnia" başlığından tuşları cihaza sürükle.
+Then in Ulanzi Studio drag the keys from the "Insomnia" group in the list on the right onto the device.
 
-## Nasıl çalışır
+## How it works
 
-`plugin/app.js` yarım saniyede bir Insomnia'nın kumanda kapısından durumu okur
-(`%LOCALAPPDATA%\Insomnia\kumanda.json` içindeki kapı numarası ve anahtarla) ve değişen
-tuşları yeniden çizer. Çizimler `plugin/cizim.js` içinde, 196×196 piksellik SVG olarak üretilir.
-Seçili süre ve bitiş işlemi `%LOCALAPPDATA%\Insomnia\ulanzi.json` dosyasında saklanır.
+`plugin/app.js` reads the state from Insomnia's control door twice a second (using the port and key in
+`%LOCALAPPDATA%\Insomnia\kumanda.json`) and redraws the keys that changed. The drawings are produced in
+`plugin/cizim.js` as 196×196 pixel SVG. The chosen duration and end action are stored in
+`%LOCALAPPDATA%\Insomnia\ulanzi.json`.
 
-`plugin-common-node` ve `node_modules/ws` Ulanzi'nin resmi geliştirme kitinden gelir
-(Apache-2.0).
+`plugin-common-node` and `node_modules/ws` come from Ulanzi's official SDK (Apache-2.0).

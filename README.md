@@ -1,141 +1,140 @@
 # Insomnia
 
-**Türkçe** · [English](README.en.md)
+**English** · [Türkçe](README.tr.md)
 
-Bilgisayarı belirlediğin süre boyunca uyanık tutan küçük bir Windows programı.
-Süre dolunca istersen bilgisayarı kapatır, yeniden başlatır, uyku moduna alır ya da hazırda bekletir.
+A small Windows program that keeps your computer awake for as long as you choose.
+When the time is up it can shut the computer down, restart it, put it to sleep or hibernate it.
 
-**Ulanzi D200 için hazırlandı:** program, Ulanzi D200 tuş takımından yönetilebilir. Eklentisi bu depoda
-(`ulanzi` klasörü) ve kurulum paketinin içinde gelir; tuşlardan oturum başlatılır, durdurulur, süre eklenir
-ve bitişte ne olacağı seçilir. Cihazı olmayanlar için program tek başına da eksiksiz çalışır.
+**Made for the Ulanzi D200:** the program can be controlled from an Ulanzi D200 key deck. The plugin lives in
+this repository (the `ulanzi` folder) and ships inside the installer; from the keys you start and stop a session,
+add time and choose what happens at the end. Without the device the program works fully on its own.
 
-Sürüm: 1.4.0 · **Nihai sürüm**
+Version: 1.4.0 · **Final release**
 
-![Insomnia penceresi, hazır](docs/window-idle.png)
+![Insomnia window, ready](docs/window-idle.png)
 
-| Çalışırken | Son dakika |
+| Running | Last minute |
 | --- | --- |
-| ![Oturum sürüyor](docs/window-running.png) | ![60 saniyelik uyarı](docs/window-warning.png) |
+| ![Session running](docs/window-running.png) | ![60 second warning](docs/window-warning.png) |
 
-Ulanzi D200'de:
+On the Ulanzi D200:
 
-![Ulanzi D200 tuşları](docs/ulanzi-keys.png)
+![Ulanzi D200 keys](docs/ulanzi-keys.png)
 
-Görüntüler programın İngilizce halinden alındı; program Türkçe de çalışır.
+## What it does
 
-## Ne yapar
+- **Duration:** 15 min, 30 min, 1 h, 2 h, no limit (∞) or a custom duration from 1 to 1440 minutes.
+- **When time is up:** do nothing, shut down, restart, sleep, hibernate.
+- **Sound:** two short beeps when the time is up.
+- **Screen off:** from a button or when the session starts; either way with a 10 second countdown you can cancel.
+- **Tray icon (next to the clock):** a moon. Grey when ready; gold while running, with a ring that shows the time left; in the last minutes it takes the colour of the end action.
+  Its menu has quick start, stop, start with Windows, language and exit.
+- **Languages:** Turkish, English, German, French, Spanish.
 
-- **Süre:** 15 dk, 30 dk, 1 sa, 2 sa, süresiz (∞) ya da 1–1440 dakika arası özel süre.
-- **Süre bitince:** bir şey yapma, bilgisayarı kapat, yeniden başlat, uyku moduna al, hazırda beklet.
-- **Sesli uyarı:** süre dolunca iki kısa bip.
-- **Ekranı kapat:** düğmeyle ya da oturum başlarken; ikisinde de 10 saniyelik, vazgeçilebilir geri sayım.
-- **Tepsi simgesi (saatin yanı):** ay simgesi. Hazırken gri; çalışırken altın ve çevresinde kalan süreyi gösteren halka; son dakikalarda bitiş işleminin rengi.
-  Menüsünde hızlı başlatma, durdurma, Windows açılışında çalıştırma, dil ve çıkış var.
-- **Diller:** Türkçe, İngilizce, Almanca, Fransızca, İspanyolca.
+## Behaviour worth knowing
 
-## Bilmen gereken davranışlar
+- Before shutting down, restarting, sleeping or hibernating there is a **60 second warning**; the window comes to
+  the front and the screen turns on if it was off. Press "Cancel" and nothing happens.
+- Shut down and restart force open programs to close (`shutdown /f`); unsaved work is lost.
+- **The end action is not remembered.** The program always starts with "Do nothing".
+- **Quick start from the tray** only keeps the computer awake; it does nothing at the end.
+- If you put the computer to sleep by hand during a session, the session stops **without running the end action**.
+- Closing the window (×) does not exit the program, it hides it in the tray. Exit is in the tray menu.
+- **Settings (gear):** where the program shows up (tray + taskbar, tray only, taskbar only), language and start with Windows. With "taskbar only" there is no tray icon; × minimises the window during a session and exits the program when idle.
+- The program does not block Windows from shutting down or signing out.
+- Settings are stored in `%APPDATA%\Insomnia\settings.json`.
 
-- Kapatma, yeniden başlatma, uyku ve hazırda bekletmeden önce **60 saniyelik uyarı** çıkar; pencere öne gelir, ekran
-  kapalıysa açılır. "Vazgeç"e basılırsa işlem yapılmaz.
-- Kapatma ve yeniden başlatma açık programları zorla kapatır (`shutdown /f`); kaydedilmemiş işler kaybolur.
-- **Bitiş işlemi hatırlanmaz.** Program her açılışta "Bir şey yapma" ile başlar.
-- **Tepsiden hızlı başlatma** yalnız uyanık tutar; bitişte hiçbir işlem yapmaz.
-- Oturum sürerken bilgisayar elle uyutulursa oturum **bitiş işlemi yapılmadan** durur.
-- Pencereyi kapatmak (×) programı kapatmaz, tepsiye gizler. Çıkış tepsi menüsündedir.
-- **Ayarlar (dişli):** programın nerede görüneceği (saatin yanı + görev çubuğu, yalnız saatin yanı, yalnız görev çubuğu), dil ve Windows açılışında çalıştırma. "Yalnız görev çubuğunda" seçiliyken tepsi simgesi yoktur; × oturum sürerken pencereyi küçültür, boştayken programı kapatır.
-- Windows kapanırken ya da oturum kapatılırken program kapanmayı engellemez.
-- Ayarlar `%APPDATA%\Insomnia\settings.json` dosyasında durur.
+## Installing
 
-## Kurulum
+Run `Insomnia-Kurulum-<version>.exe` (the installer; it speaks English too). It needs no administrator rights;
+the program is installed under `%LOCALAPPDATA%\Programs\Insomnia`. The installer asks:
 
-`Insomnia-Kurulum-<sürüm>.exe` dosyasını çalıştır. Yönetici izni istemez; program
-`%LOCALAPPDATA%\Programs\Insomnia` altına kurulur. Kurulum şunları sorar:
+- **Also install the Ulanzi D200 plugin** (shown only if Ulanzi Studio is on the computer)
+- **Start with Windows**
+- **Create a desktop shortcut**
 
-- **Ulanzi D200 eklentisini de kur** (yalnız bilgisayarda Ulanzi Studio varsa görünür)
-- **Windows açılışında başlat**
-- **Masaüstüne kısayol koy**
+To update, run the newer installer: it closes the running Insomnia itself (and asks first if a session is
+running). Uninstall from Windows "Apps"; the settings (`%APPDATA%\Insomnia`) are kept.
 
-Güncellerken aynı dosyanın yeni sürümünü çalıştırmak yeter: çalışan Insomnia'yı kendisi kapatır
-(oturum sürüyorsa önce sorar). Kaldırma Windows'un "Uygulamalar" listesinden yapılır; ayarlar
-(`%APPDATA%\Insomnia`) bırakılır.
+If you prefer no installation, `Insomnia.exe` also runs on its own (portable).
 
-Kurulum istemeyenler için `Insomnia.exe` tek başına da çalışır (taşınabilir).
-
-## Çalıştırma
+## Running from source
 
 ```
 pip install -r requirements.txt
-python main.py           # pencereyle
-python main.py --tray    # yalnız tepsi simgesiyle
+python main.py           # with the window
+python main.py --tray    # tray icon only
 ```
 
-Windows 10/11 ve Microsoft Edge WebView2 gerekir (Windows 11'de hazır gelir).
+Requires Windows 10/11 and Microsoft Edge WebView2 (included in Windows 11).
 
-## Dışarıdan yönetme (kumanda kapısı)
+## Controlling it from outside (the control door)
 
-Program açıkken başka programlar onu yönetebilir. Ulanzi D200 eklentisi bunu kullanır
-(bu depoda `ulanzi` klasöründe; kurulumu oradaki README anlatır).
+While the program is running, other programs can control it. The Ulanzi D200 plugin uses this
+(see the `ulanzi` folder; its README explains the setup).
 
-Komut satırından:
+From the command line:
 
 ```
-Insomnia.exe --baslat 60                    # 60 dakikalık oturum (0 = süresiz); program kapalıysa tepside açar
-Insomnia.exe --baslat 60 --islem shutdown   # bitince kapat (restart, sleep, hibernate)
-Insomnia.exe --durdur
-Insomnia.exe --ekran-kapat
-Insomnia.exe --cik                          # programı kapatır
+Insomnia.exe --baslat 60                    # 60 minute session (0 = no limit); opens in the tray if not running
+Insomnia.exe --baslat 60 --islem shutdown   # shut down at the end (restart, sleep, hibernate)
+Insomnia.exe --durdur                       # stop
+Insomnia.exe --ekran-kapat                  # turn the screen off
+Insomnia.exe --cik                          # exit the program
 ```
 
-Programdan: `%LOCALAPPDATA%\Insomnia\kumanda.json` dosyasında kapı numarası (`port`) ve
-anahtar (`token`) yazar. Sunucu yalnız 127.0.0.1'i dinler; her istek anahtarı
-`X-Insomnia-Anahtar` başlığında taşımalıdır. Tarayıcıdan gelen istekler (Origin başlığı
-olanlar) reddedilir.
+From a program: `%LOCALAPPDATA%\Insomnia\kumanda.json` holds the port (`port`) and the key (`token`).
+The server listens on 127.0.0.1 only; every request must carry the key in the `X-Insomnia-Anahtar`
+header. Requests coming from a browser (those with an Origin header) are refused.
 
-- `GET /durum` oturum durumunu verir.
-- `POST /komut` gövdesi `{"komut": "..."}`: `start` (`minutes`, `infinite`, `action`), `stop`,
-  `cancel` (uyarıda vazgeç), `act_now` (uyarıda beklemeden yap), `adjust` (`seconds`; çalışan
-  oturuma süre ekler ya da çıkarır), `set_action` (`action`; çalışan oturumun bitişini
-  değiştirir), `screen_off`, `cancel_screen_off`, `show`.
+- `GET /durum` returns the session state.
+- `POST /komut` with body `{"komut": "..."}`: `start` (`minutes`, `infinite`, `action`), `stop`,
+  `cancel` (cancel during the warning), `act_now` (do it without waiting during the warning), `adjust`
+  (`seconds`; adds or removes time from the running session), `set_action` (`action`; changes what the
+  running session does at the end), `screen_off`, `cancel_screen_off`, `show`.
 
-## Derleme
+## Building
 
 ```
 python build.py
 ```
 
-`dist\Insomnia.exe` (tek dosya, taşınabilir) ve Inno Setup 6 kuruluysa
-`dist\Insomnia-Kurulum-<sürüm>.exe` (kurulum paketi, `kurulum\insomnia.iss`) oluşur. Sürüm numarası `insomnia/__init__.py` içindeki `__version__` değeridir.
+Produces `dist\Insomnia.exe` (single file, portable) and, if Inno Setup 6 is installed,
+`dist\Insomnia-Kurulum-<version>.exe` (the installer, from `kurulum\insomnia.iss`). The version number is
+`__version__` in `insomnia/__init__.py`.
 
-## Sınama
+## Testing
 
 ```
 python -m unittest discover -s tests
 ```
 
-Deneme sırasında bilgisayarın gerçekten kapanmaması için:
+To make sure the computer does not really shut down while testing:
 
 ```
 set INSOMNIA_DRY_RUN=1
 ```
 
-Bu değişken varken kapatma, yeniden başlatma, uyku, hazırda bekletme ve ekran kapatma yapılmaz.
+With this variable set, shut down, restart, sleep, hibernate and screen off are not carried out.
 
-## Dosyalar
+## Files
 
-| Dosya | İş |
+| File | Job |
 | --- | --- |
-| `main.py` | Başlatıcı; tek kopya denetimi |
-| `insomnia/app.py` | Pencere, tepsi ve zamanlayıcıyı bağlar; arayüzün çağırdığı işlemler |
-| `insomnia/engine.py` | Oturum zamanlayıcısı (tek iş parçacığı) |
-| `insomnia/remote.py` | Kumanda kapısı ve komut satırı istemcisi |
-| `kurulum/insomnia.iss` | Kurulum paketi tarifi (Inno Setup) |
-| `ulanzi/` | Ulanzi D200 eklentisi (Node.js); programdan bağımsız kurulur |
-| `insomnia/power.py` | Uyanık tutma, ekran, kapatma işlemleri |
-| `insomnia/settings.py` | Ayar dosyası |
-| `insomnia/startup.py` | Windows açılışında çalıştırma kaydı |
-| `insomnia/single_instance.py` | İkinci kopya açılınca ilkinin penceresini gösterme |
-| `insomnia/tray.py`, `insomnia/icons.py` | Tepsi simgesi, menüsü ve ay çizimi |
-| `insomnia/i18n.py` | Beş dilde metinler |
-| `insomnia/ui/index.html` | Arayüz (HTML, CSS, JavaScript tek dosyada) |
-| `tests/` | Zamanlayıcı, ayar ve çeviri sınamaları |
-| `build.py` | exe derleme |
+| `main.py` | Launcher; single instance check |
+| `insomnia/app.py` | Ties window, tray and timer together; the actions the interface calls |
+| `insomnia/engine.py` | Session timer (single thread) |
+| `insomnia/remote.py` | Control door and command line client |
+| `kurulum/insomnia.iss` | Installer recipe (Inno Setup) |
+| `ulanzi/` | Ulanzi D200 plugin (Node.js) |
+| `insomnia/power.py` | Keep awake, screen, shut down actions |
+| `insomnia/settings.py` | Settings file |
+| `insomnia/startup.py` | Start with Windows entry |
+| `insomnia/single_instance.py` | Shows the first copy's window when a second one is opened |
+| `insomnia/tray.py`, `insomnia/icons.py` | Tray icon, its menu and the moon drawing |
+| `insomnia/i18n.py` | Texts in five languages |
+| `insomnia/ui/index.html` | Interface (HTML, CSS, JavaScript in one file) |
+| `tests/` | Timer, settings and translation tests |
+| `build.py` | Builds the exe and the installer |
+
+The code comments and command names are in Turkish.
