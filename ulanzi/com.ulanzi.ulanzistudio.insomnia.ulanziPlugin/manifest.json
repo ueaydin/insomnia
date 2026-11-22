@@ -1,0 +1,119 @@
+{
+  "Author": "Engin Aydin",
+  "Name": "Insomnia",
+  "Description": "Insomnia'yi tuslardan yonetir: baslat, durdur, sure ekle, bitiste ne olacagini sec.",
+  "Icon": "resources/icon.png",
+  "Version": "1.0.0",
+  "Category": "Insomnia",
+  "CategoryIcon": "resources/icon.png",
+  "CodePath": "plugin/app.js",
+  "Type": "JavaScript",
+  "PrivateAPI": true,
+  "UUID": "com.ulanzi.ulanzistudio.insomnia",
+  "Actions": [
+    {
+      "Name": "Baslat / Durdur",
+      "Icon": "resources/icon.png",
+      "state": 0,
+      "States": [
+        {
+          "Name": "Baslat / Durdur",
+          "Image": "resources/icon.png"
+        }
+      ],
+      "Tooltip": "Bostayken baslatir, calisirken durdurur, uyarida vazgecer",
+      "UUID": "com.ulanzi.ulanzistudio.insomnia.ana",
+      "SupportedInMultiActions": false,
+      "DisableAutomaticStates": true,
+      "Controllers": [
+        "Keypad"
+      ],
+      "Devices": []
+    },
+    {
+      "Name": "Sure -",
+      "Icon": "resources/icon.png",
+      "state": 0,
+      "States": [
+        {
+          "Name": "Sure -",
+          "Image": "resources/icon.png"
+        }
+      ],
+      "Tooltip": "Secili sureyi azaltir; calisirken 15 dk cikarir",
+      "UUID": "com.ulanzi.ulanzistudio.insomnia.eksi",
+      "SupportedInMultiActions": false,
+      "DisableAutomaticStates": true,
+      "Controllers": [
+        "Keypad"
+      ],
+      "Devices": []
+    },
+    {
+      "Name": "Sure +",
+      "Icon": "resources/icon.png",
+      "state": 0,
+      "States": [
+        {
+          "Name": "Sure +",
+          "Image": "resources/icon.png"
+        }
+      ],
+      "Tooltip": "Secili sureyi arttirir; calisirken 15 dk ekler",
+      "UUID": "com.ulanzi.ulanzistudio.insomnia.arti",
+      "SupportedInMultiActions": false,
+      "DisableAutomaticStates": true,
+      "Controllers": [
+        "Keypad"
+      ],
+      "Devices": []
+    },
+    {
+      "Name": "Bitince",
+      "Icon": "resources/icon.png",
+      "state": 0,
+      "States": [
+        {
+          "Name": "Bitince",
+          "Image": "resources/icon.png"
+        }
+      ],
+      "Tooltip": "Sure bitince ne olacagini secer; uyarida hemen uygular",
+      "UUID": "com.ulanzi.ulanzistudio.insomnia.bitince",
+      "SupportedInMultiActions": false,
+      "DisableAutomaticStates": true,
+      "Controllers": [
+        "Keypad"
+      ],
+      "Devices": []
+    },
+    {
+      "Name": "Ekrani Kapat",
+      "Icon": "resources/icon.png",
+      "state": 0,
+      "States": [
+        {
+          "Name": "Ekrani Kapat",
+          "Image": "resources/icon.png"
+        }
+      ],
+      "Tooltip": "Ekrani 10 sn sonra kapatir; tekrar basinca iptal eder",
+      "UUID": "com.ulanzi.ulanzistudio.insomnia.ekran",
+      "SupportedInMultiActions": false,
+      "DisableAutomaticStates": true,
+      "Controllers": [
+        "Keypad"
+      ],
+      "Devices": []
+    }
+  ],
+  "OS": [
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "Software": {
+    "MinVersion": "2.1.0"
+  }
+}

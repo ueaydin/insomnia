@@ -41,7 +41,7 @@ Windows 10/11 ve Microsoft Edge WebView2 gerekir (Windows 11'de hazır gelir).
 ## Dışarıdan yönetme (kumanda kapısı)
 
 Program açıkken başka programlar onu yönetebilir. Ulanzi D200 eklentisi bunu kullanır
-(ayrı proje: `Insomnia Ulanzi`).
+(bu depoda `ulanzi` klasöründe; kurulumu oradaki README anlatır).
 
 Komut satırından:
 
@@ -93,6 +93,7 @@ Bu değişken varken kapatma, yeniden başlatma, hazırda bekletme ve ekran kapa
 | `insomnia/app.py` | Pencere, tepsi ve zamanlayıcıyı bağlar; arayüzün çağırdığı işlemler |
 | `insomnia/engine.py` | Oturum zamanlayıcısı (tek iş parçacığı) |
 | `insomnia/remote.py` | Kumanda kapısı ve komut satırı istemcisi |
+| `ulanzi/` | Ulanzi D200 eklentisi (Node.js); programdan bağımsız kurulur |
 | `insomnia/power.py` | Uyanık tutma, ekran, kapatma işlemleri |
 | `insomnia/settings.py` | Ayar dosyası |
 | `insomnia/startup.py` | Windows açılışında çalıştırma kaydı |
