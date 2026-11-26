@@ -4,18 +4,23 @@
 
 A small Windows program that keeps your computer awake for as long as you choose.
 When the time is up it can shut the computer down, restart it, put it to sleep or hibernate it.
+It also has a small reminder built in.
 
 **Made for the Ulanzi D200:** the program can be controlled from an Ulanzi D200 key deck. The plugin lives in
 this repository (the `ulanzi` folder) and ships inside the installer; from the keys you start and stop a session,
-add time and choose what happens at the end. Without the device the program works fully on its own.
+add time, choose what happens at the end and set a reminder. Without the device the program works fully on its own.
 
-Version: 1.4.1 · **Final release**
+Version: 1.5.0
 
 ![Insomnia window, ready](docs/window-idle.png)
 
 | Running | Last minute |
 | --- | --- |
 | ![Session running](docs/window-running.png) | ![60 second warning](docs/window-warning.png) |
+
+| Reminder | When it is due |
+| --- | --- |
+| ![Reminder panel](docs/window-reminder.png) | ![Reminder on screen](docs/window-reminder-due.png) |
 
 On the Ulanzi D200:
 
@@ -27,6 +32,8 @@ On the Ulanzi D200:
 - **When time is up:** do nothing, shut down, restart, sleep, hibernate.
 - **Sound:** two short beeps when the time is up.
 - **Screen off:** from a button or when the session starts; either way with a 10 second countdown you can cancel.
+- **Reminder:** a one-off reminder "in so many minutes" or "at this time", with a note if you like. It shows
+  on screen, plays a sound, or both; there are two sounds (gentle, loud). Up to 3 reminders can wait at once.
 - **Tray icon (next to the clock):** a moon. Grey when ready; gold while running, with a ring that shows the time left; in the last minutes it takes the colour of the end action.
   Its menu has quick start, stop, start with Windows, language and exit.
 - **Languages:** Turkish, English, German, French, Spanish.
@@ -41,6 +48,12 @@ On the Ulanzi D200:
 - If you put the computer to sleep by hand during a session, the session stops **without running the end action**.
 - Closing the window (×) does not exit the program, it hides it in the tray. Exit is in the tray menu.
 - **Settings (gear):** where the program shows up (tray + taskbar, tray only, taskbar only), language and start with Windows. With "taskbar only" there is no tray icon; × minimises the window during a session and exits the program when idle.
+- **A reminder does not keep the computer awake.** If its time comes while the computer sleeps or the program
+  is closed, it is shown as "missed" once the program runs again. A reminder shown on screen stays until you
+  press "OK" or "Snooze 10 min"; its sound plays up to three times, a minute apart. A sound-only reminder
+  closes by itself after the third sound.
+- The reminder's starting time is changed in Settings (15 min at first). Waiting reminders are stored in
+  `%APPDATA%\Insomnia\reminders.json`.
 - The program does not block Windows from shutting down or signing out.
 - Settings are stored in `%APPDATA%\Insomnia\settings.json`.
 
@@ -92,6 +105,8 @@ header. Requests coming from a browser (those with an Origin header) are refused
   `cancel` (cancel during the warning), `act_now` (do it without waiting during the warning), `adjust`
   (`seconds`; adds or removes time from the running session), `set_action` (`action`; changes what the
   running session does at the end), `screen_off`, `cancel_screen_off`, `show`.
+- Reminder (1.5.0): `reminder_add` (`minutes`), `reminder_adjust` (`id`, `seconds`), `reminder_remove` (`id`),
+  `reminder_dismiss` (`id`). Waiting and ringing reminders are under `reminders` in the `/durum` reply.
 
 ## Building
 
@@ -124,6 +139,7 @@ With this variable set, shut down, restart, sleep, hibernate and screen off are 
 | `main.py` | Launcher; single instance check |
 | `insomnia/app.py` | Ties window, tray and timer together; the actions the interface calls |
 | `insomnia/engine.py` | Session timer (single thread) |
+| `insomnia/reminders.py` | Reminders: storage, firing when due, sounds |
 | `insomnia/remote.py` | Control door and command line client |
 | `kurulum/insomnia.iss` | Installer recipe (Inno Setup) |
 | `ulanzi/` | Ulanzi D200 plugin (Node.js) |
@@ -134,7 +150,7 @@ With this variable set, shut down, restart, sleep, hibernate and screen off are 
 | `insomnia/tray.py`, `insomnia/icons.py` | Tray icon, its menu and the moon drawing |
 | `insomnia/i18n.py` | Texts in five languages |
 | `insomnia/ui/index.html` | Interface (HTML, CSS, JavaScript in one file) |
-| `tests/` | Timer, settings and translation tests |
+| `tests/` | Timer, reminder, settings and translation tests |
 | `build.py` | Builds the exe and the installer |
 
 The code comments and command names are in Turkish.

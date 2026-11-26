@@ -1,9 +1,9 @@
 {
   "Author": "Engin Aydin",
   "Name": "Insomnia",
-  "Description": "Control Insomnia from the keys: start, stop, add time, choose what happens when time is up.",
+  "Description": "Control Insomnia from the keys: start, stop, add time, choose what happens when time is up, set a reminder.",
   "Icon": "resources/icon.png",
-  "Version": "1.1.1",
+  "Version": "1.2.0",
   "Category": "Insomnia",
   "CategoryIcon": "resources/icon.png",
   "CodePath": "plugin/app.js",
@@ -99,6 +99,25 @@
       ],
       "Tooltip": "Turns the screen off after 10 s; press again to cancel",
       "UUID": "com.ulanzi.ulanzistudio.insomnia.ekran",
+      "SupportedInMultiActions": false,
+      "DisableAutomaticStates": true,
+      "Controllers": [
+        "Keypad"
+      ],
+      "Devices": []
+    },
+    {
+      "Name": "Reminder",
+      "Icon": "resources/icon.png",
+      "state": 0,
+      "States": [
+        {
+          "Name": "Reminder",
+          "Image": "resources/icon.png"
+        }
+      ],
+      "Tooltip": "Press, set the time with Time - / Time +, press again to set a reminder; press while it rings to dismiss",
+      "UUID": "com.ulanzi.ulanzistudio.insomnia.hat",
       "SupportedInMultiActions": false,
       "DisableAutomaticStates": true,
       "Controllers": [

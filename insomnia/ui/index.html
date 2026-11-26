@@ -10,7 +10,7 @@ body{margin:0;overflow:hidden;background:#1b1b1d;color:#e8e8e8;font-family:"Sego
 button,input{font-family:inherit}
 [hidden]{display:none!important}
 .pencere{position:relative;width:100%;height:100%;display:flex;border:1px solid #3a3a3d}
-.tasi{position:absolute;top:0;left:0;right:80px;height:30px;z-index:2}
+.tasi{position:absolute;top:0;left:0;right:120px;height:30px;z-index:2}
 .sol{width:330px;flex:none;padding:20px 24px 16px 30px;display:flex;flex-direction:column;min-width:0}
 .marka{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:700;letter-spacing:-.3px}
 .baslik{margin-top:11px;font-size:12px;font-weight:700;letter-spacing:.04em;color:#949494}
@@ -47,6 +47,9 @@ button,input{font-family:inherit}
 .islemler button[data-islem=hibernate][aria-checked=true] svg{color:#6cb0ee}
 .islemler button:disabled{color:#666;border-color:#3a3a3d;background:#2c2c2f;cursor:default;font-weight:400}
 .islemler button:disabled svg{color:#555}
+.islemler button.hat{border-color:#7a6430;color:#e0b040;font-variant-numeric:tabular-nums}
+.islemler button.hat svg{color:#e0b040}
+.islemler button.hat:hover,.islemler button.hat[aria-expanded=true]{background:#3a3320;border-color:#e0b040}
 .onay{margin-top:8px;display:flex;align-items:center;gap:9px}
 .onay label{cursor:pointer}
 .onay input{appearance:none;-webkit-appearance:none;flex:none;width:30px;height:16px;margin:0;border-radius:8px;background:#4d4d4d;position:relative;cursor:pointer;transition:background .15s}
@@ -115,6 +118,31 @@ button,input{font-family:inherit}
 .diller button{height:28px;padding:0 7px;border-radius:3px;border:1px solid #555;background:#3a3a3d;color:#e8e8e8;font-size:13px;cursor:pointer}
 .diller button:hover{background:#444448}
 .diller button[aria-pressed=true]{background:#1f5f99;border-color:#1f5f99;color:#fff;font-weight:600}
+.pd button.var{color:#e0b040}
+.hsatir{margin-top:8px;display:flex;align-items:center;gap:8px;color:#b8b8b8}
+.hsatir .bosluk{flex:1;min-width:0}
+.hsatir .saat{width:60px;flex:none;text-align:center;font-variant-numeric:tabular-nums}
+.panel .not{margin-top:10px;width:100%;flex:none}
+.sesler{margin-top:8px;display:flex;align-items:center;gap:6px}
+.sesler .onay{margin-top:0;margin-right:auto;min-width:0}
+.sesler .secenek{margin-top:0;flex:none}
+.sesler .secenek button{flex:none;padding:0 11px}
+.sesler button:disabled{color:#666;border-color:#3a3a3d;background:#2c2c2f;cursor:default;font-weight:400}
+.dinle{flex:none;width:28px;height:28px;padding:0;border-radius:3px;border:1px solid #555;background:#3a3a3d;color:#e0b040;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.dinle:hover{background:#444448}
+.kaydet{margin-top:12px;flex:none;border-color:#1f5f99;background:#1f5f99;color:#fff;font-weight:600;font-variant-numeric:tabular-nums}
+.kaydet:hover{background:#2a70b0}
+.kaydet:disabled{background:#2c2c2f;border-color:#444;color:#777;cursor:default}
+.hliste{margin-top:3px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+.hliste::-webkit-scrollbar{width:8px}
+.hliste::-webkit-scrollbar-thumb{background:#444448;border-radius:4px}
+.hliste .bos{color:#777;font-size:12.5px;margin-top:2px}
+.hoge{display:flex;align-items:center;gap:8px;height:22px;flex:none;padding:0 3px 0 8px;border:1px solid #38383b;border-radius:3px;background:#232326;font-size:12.5px}
+.hoge b{flex:none;color:#e0b040;font-variant-numeric:tabular-nums}
+.hoge span{flex:1}
+.hoge span.yok{color:#777}
+.hoge button{flex:none;width:22px;height:18px;padding:0;border:0;border-radius:3px;background:transparent;color:#949494;font-size:15px;line-height:1;cursor:pointer}
+.hoge button:hover{background:#3d2220;color:#ff7b6b}
 .panelAlt{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#949494;font-size:12.5px}
 
 
@@ -129,6 +157,10 @@ button,input{font-family:inherit}
 .uyari button:hover{background:#fff}
 .uyari button.simdi{background:transparent;color:#e8e8e8;border-color:#777;font-weight:600}
 .uyari button.simdi:hover{background:#333336}
+.hatUyari{z-index:4}
+.hatUyari .zil{color:#e0b040;filter:drop-shadow(0 0 8px rgba(224,176,64,.45))}
+.hatUyari .hnot{max-width:100%;font-size:26px;font-weight:700;line-height:1.25;color:#f3e6d0;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.hatUyari .hzaman{font-size:15px;font-weight:600;color:#e0b040;font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion:reduce){.onay input,.onay input::after{transition:none}}
 </style>
 </head>
@@ -156,6 +188,7 @@ button,input{font-family:inherit}
 <button role="radio" data-islem="restart" aria-checked="false"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"></path><path d="M20 4v5h-5"></path></svg><span class="tek" data-t="act_restart"></span></button>
 <button role="radio" data-islem="sleep" aria-checked="false"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h9l-9 11h9"></path><path d="M15 3h5l-5 5.5h5"></path></svg><span class="tek" data-t="act_sleep"></span></button>
 <button role="radio" data-islem="hibernate" aria-checked="false"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20 13.5A8 8 0 1 1 10.5 4a6.5 6.5 0 0 0 9.5 9.5z"></path></svg><span class="tek" data-t="act_hibernate"></span></button>
+<button id="hatD" class="hat" aria-expanded="false" aria-controls="hatPanel"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"></path><path d="M10 21h4"></path></svg><span class="tek" id="hatDMetin"></span></button>
 </div>
 <div class="onay" style="margin-top:9px"><input id="ses" type="checkbox"><label for="ses" class="tek" data-t="sound"></label></div>
 <div class="onay" style="margin-top:6px"><input id="ekran" type="checkbox"><label for="ekran" class="tek" data-t="screen_opt"></label></div>
@@ -179,6 +212,7 @@ button,input{font-family:inherit}
 
 <section class="sag">
 <div class="pd">
+<button id="zilD" aria-expanded="false" aria-controls="hatPanel"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"></path><path d="M10 21h4"></path></svg></button>
 <button id="ayarD" data-ta="settings" aria-expanded="false" aria-controls="panel"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg></button>
 <button id="kucult" data-ta="win_min"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
 <button id="kapat" data-ta="win_close"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
@@ -204,10 +238,37 @@ button,input{font-family:inherit}
 </div>
 <div class="baslik" data-t="lang_title"></div>
 <div class="diller" id="diller"></div>
+<div class="baslik" data-t="rem_section"></div>
+<div class="satir"><label for="hatVars" class="tek" data-t="rem_default_time"></label><div class="adim"><button id="hatVarsEksi" data-ta="dec">−</button><input id="hatVars" class="girdi" type="text" inputmode="numeric" maxlength="4" autocomplete="off"><button id="hatVarsArti" data-ta="inc">+</button></div><span class="tek" data-t="minutes"></span></div>
 <div class="onay" style="margin-top:16px"><input id="acilis" type="checkbox"><label for="acilis" class="tek" data-t="tray_startup"></label></div>
 <div class="panelAlt"><span id="surum"></span></div>
 </div>
+<div id="hatPanel" class="panel" hidden>
+<h2 data-t="rem_title"></h2>
+<div class="baslik" data-t="rem_when"></div>
+<div class="secenek" id="hatHazir">
+<button data-dk="5" data-t="p5" aria-pressed="false"></button>
+<button data-dk="15" data-t="p15" aria-pressed="false"></button>
+<button data-dk="30" data-t="p30" aria-pressed="false"></button>
+<button data-dk="60" data-t="p60" aria-pressed="false"></button>
+</div>
+<div class="hsatir"><div class="adim"><button id="hatEksi" data-ta="dec">−</button><input id="hatDk" class="girdi" type="text" inputmode="numeric" maxlength="4" autocomplete="off"><button id="hatArti" data-ta="inc">+</button></div><label for="hatDk" class="tek" data-t="rem_after"></label><span class="bosluk"></span><label for="hatSaat" class="tek" data-t="rem_at"></label><input id="hatSaat" class="girdi saat" type="text" maxlength="5" autocomplete="off"></div>
+<input id="hatNot" class="girdi not" type="text" maxlength="80" autocomplete="off" spellcheck="false">
+<div class="onay" style="margin-top:10px"><input id="hatGoster" type="checkbox"><label for="hatGoster" class="tek" data-t="rem_show"></label></div>
+<div class="sesler"><div class="onay"><input id="hatSes" type="checkbox"><label for="hatSes" class="tek" data-t="rem_sound"></label></div><div class="secenek" id="hatTon"><button data-ton="soft" data-t="rem_tone_soft" aria-pressed="false"></button><button data-ton="alarm" data-t="rem_tone_alarm" aria-pressed="false"></button></div><button id="hatDinle" class="dinle" data-ta="rem_preview"><svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8z"></path></svg></button></div>
+<button id="hatKaydet" class="dugme kaydet"></button>
+<div class="baslik" data-t="rem_list"></div>
+<div class="hliste" id="hatListe"></div>
+</div>
 </section>
+
+<div id="hatUyari" class="uyari hatUyari" role="alertdialog" aria-labelledby="hatUyariNot" hidden>
+<svg class="zil" aria-hidden="true" width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"></path><path d="M10 21h4"></path></svg>
+<div class="hnot" id="hatUyariNot"></div>
+<div class="hzaman" id="hatUyariZaman"></div>
+<div class="not" id="hatUyariEk" hidden></div>
+<div class="dugmeler"><button id="hatTamam" data-t="rem_ok"></button><button id="hatErtele" class="simdi"></button></div>
+</div>
 
 <div id="uyari" class="uyari" role="alertdialog" aria-labelledby="uyariMetin" hidden>
 <div class="sayi" id="uyariSayi"></div>
@@ -269,6 +330,8 @@ function metinleriUygula() {
   var uy = document.querySelector('#islemler [data-islem=sleep]');
   uy.title = uykuVar ? t('act_sleep') : t('sleep_unavailable');
   $('gorunum').setAttribute('aria-label', t('view'));
+  $('hatNot').placeholder = t('rem_note'); $('hatNot').setAttribute('aria-label', t('rem_note'));
+  hat.listeAnahtar = null;
   panelCiz();
 }
 
@@ -286,13 +349,174 @@ function panelCiz() {
 
 // Tepsi simgesi yokken × pencereyi gizlemez: oturum sürüyorsa küçültür, boştayken programı kapatır.
 function kapatIpucu() {
-  var m = gorunum !== 'taskbar' ? T.win_close : (S && S.phase !== 'idle' ? T.win_min : T.tray_exit);
+  var R = S && S.reminders, mesgul = S && (S.phase !== 'idle' || (R && (R.pending.length || R.due)));
+  var m = gorunum !== 'taskbar' ? T.win_close : (mesgul ? T.win_min : T.tray_exit);
   if ($('kapat').title !== m) { $('kapat').title = m; $('kapat').setAttribute('aria-label', m); }
 }
 
 function paneliAc(ac) {
+  if (ac) hatPaneliAc(false);
   $('panel').hidden = !ac;
   $('ayarD').setAttribute('aria-expanded', ac ? 'true' : 'false');
+}
+
+// ---- hatırlatıcı -------------------------------------------------------
+// hat.mod: son elle değiştirilen alan ('dk' = şu kadar dakika sonra, 'saat' = şu saatte); öteki alan ondan hesaplanır.
+var hat = { mod: 'dk', ton: 'soft', varsayilan: 15, listeAnahtar: null, gosterilen: null, gosterildi: 0 };
+var HAT_KORUMA = 700;  // ms; hatırlatıcı ekranı çıktıktan sonra bu kadar süre düğmeler basılmış sayılmaz
+
+function hatDakika() {
+  var m = $('hatDk').value.trim();
+  if (!/^\d+$/.test(m)) return null;
+  var n = parseInt(m, 10);
+  return n >= sinir.min && n <= sinir.max ? n : null;
+}
+function hatSaat() {
+  var m = /^(\d{1,2})[:.](\d{2})$/.exec($('hatSaat').value.trim());
+  if (!m) return null;
+  var s = parseInt(m[1], 10), d = parseInt(m[2], 10);
+  return s < 24 && d < 60 ? { s: s, d: d } : null;
+}
+function hatHedef() {
+  if (hat.mod === 'dk') { var n = hatDakika(); return n === null ? null : new Date(Date.now() + n * 60000); }
+  var z = hatSaat();
+  if (!z) return null;
+  var g = new Date(); g.setHours(z.s, z.d, 0, 0);
+  if (g.getTime() <= Date.now()) g.setDate(g.getDate() + 1);  // saat bugün geçtiyse yarın
+  return g;
+}
+function hatGunAd(tarih) { return tarih.getDate() !== new Date().getDate() ? t('rem_tomorrow') + ' ' : ''; }
+
+function hatFormCiz() {
+  var hedef = hatHedef(), odak = document.activeElement, R = S && S.reminders;
+  if (hat.mod === 'dk') { if (odak !== $('hatSaat')) $('hatSaat').value = hedef ? saatYaz(hedef) : ''; }
+  else if (odak !== $('hatDk')) $('hatDk').value = hedef ? Math.max(1, Math.ceil((hedef.getTime() - Date.now()) / 60000)) : '';
+  $('hatDk').classList.toggle('hatali', hat.mod === 'dk' && !hedef);
+  $('hatSaat').classList.toggle('hatali', hat.mod === 'saat' && !hedef);
+  var dk = hat.mod === 'dk' ? hatDakika() : null;
+  document.querySelectorAll('#hatHazir button').forEach(function (b) {
+    b.setAttribute('aria-pressed', String(dk) === b.getAttribute('data-dk') ? 'true' : 'false');
+  });
+  var sesli = $('hatSes').checked;
+  document.querySelectorAll('#hatTon button').forEach(function (b) {
+    b.setAttribute('aria-pressed', sesli && b.getAttribute('data-ton') === hat.ton ? 'true' : 'false');
+    b.disabled = !sesli;
+  });
+  $('hatDinle').disabled = !sesli;
+  var dolu = !!R && R.pending.length >= R.max;
+  $('hatKaydet').disabled = !hedef || dolu;
+  yaz($('hatKaydet'), dolu ? t('rem_full', { n: R.max }) : t('rem_save') + (hedef ? ' · ' + hatGunAd(hedef) + saatYaz(hedef) : ''));
+}
+
+function hatListeCiz(R) {
+  var anahtar = JSON.stringify(R.pending);
+  if (anahtar === hat.listeAnahtar) return;  // her yoklamada yeniden kurulursa tıklama kaçar
+  hat.listeAnahtar = anahtar;
+  var liste = $('hatListe');
+  liste.textContent = '';
+  if (!R.pending.length) {
+    var bos = document.createElement('div');
+    bos.className = 'bos'; bos.textContent = t('rem_none');
+    liste.appendChild(bos);
+    return;
+  }
+  R.pending.forEach(function (h) {
+    var satir = document.createElement('div'), saat = document.createElement('b');
+    var not = document.createElement('span'), sil = document.createElement('button');
+    satir.className = 'hoge';
+    saat.textContent = (h.tomorrow ? t('rem_tomorrow') + ' ' : '') + h.time;
+    not.className = 'tek' + (h.note ? '' : ' yok');
+    not.textContent = h.note || t('rem_default'); not.title = not.textContent;
+    sil.textContent = '×'; sil.title = t('rem_delete'); sil.setAttribute('aria-label', t('rem_delete') + ': ' + saat.textContent);
+    sil.addEventListener('click', function () { api.reminder_remove(h.id).then(durumAl); });
+    satir.appendChild(saat); satir.appendChild(not); satir.appendChild(sil);
+    liste.appendChild(satir);
+  });
+}
+
+function hatCiz() {
+  var R = S && S.reminders;
+  if (!R) return;
+  var ilk = R.pending[0], ad = t('rem_title');
+  var kisa = ilk ? ilk.time + (R.pending.length > 1 ? ' +' + (R.pending.length - 1) : '') : '';
+  yaz($('hatDMetin'), kisa || ad);
+  var ipucu = ad + (ilk ? ' · ' + (ilk.tomorrow ? t('rem_tomorrow') + ' ' : '') + ilk.time + (ilk.note ? ' · ' + ilk.note : '') : '');
+  [$('hatD'), $('zilD')].forEach(function (d) {
+    if (d.title !== ipucu) { d.title = ipucu; d.setAttribute('aria-label', ipucu); }
+  });
+  $('zilD').classList.toggle('var', !!ilk);
+  yaz($('hatErtele'), t('rem_snooze', { n: R.snooze }));
+  if (!$('hatPanel').hidden) { hatFormCiz(); hatListeCiz(R); }
+
+  // Kapatma geri sayımı sürerken hatırlatıcı bekler; geri sayım daha acil.
+  var goster = R.due && S.phase !== 'warning';
+  if (goster) {
+    yaz($('hatUyariNot'), R.due.note || t('rem_default'));
+    yaz($('hatUyariZaman'), R.due.late ? t('rem_missed', { t: R.due.time }) : R.due.time);
+    $('hatUyariEk').hidden = !R.due.more;
+    if (R.due.more) yaz($('hatUyariEk'), t('rem_more', { n: R.due.more }));
+    if ($('hatUyari').hidden || hat.gosterilen !== R.due.id) {
+      // Pencere kendiliğinden öne geldiği için düğme odaklanmaz: o an başka yere yazılan
+      // Enter / boşluk hatırlatıcıyı görülmeden kapatırdı. Art arda gelen ikinci hatırlatıcıyı
+      // çift tıklama da kapatmasın diye kısa bir koruma süresi vardır.
+      $('hatUyari').hidden = false;
+      hat.gosterildi = Date.now();
+      if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
+    }
+    hat.gosterilen = R.due.id;
+  } else {
+    $('hatUyari').hidden = true; hat.gosterilen = null;
+  }
+}
+
+function hatPaneliAc(ac) {
+  if (ac) {
+    paneliAc(false);
+    hat.mod = 'dk'; $('hatDk').value = hat.varsayilan;
+    hat.listeAnahtar = null;
+  }
+  $('hatPanel').hidden = !ac;
+  $('hatD').setAttribute('aria-expanded', ac ? 'true' : 'false');
+  $('zilD').setAttribute('aria-expanded', ac ? 'true' : 'false');
+  if (ac) { hatCiz(); $('hatNot').focus(); }
+}
+
+function hatAdimla(fark) {
+  var n = hat.mod === 'dk' ? hatDakika() : null;
+  if (n === null) { var h = hatHedef(); n = h ? Math.ceil((h.getTime() - Date.now()) / 60000) : 0; }
+  hat.mod = 'dk';
+  $('hatDk').value = Math.min(sinir.max, Math.max(sinir.min, n + fark));
+  hatFormCiz();
+}
+
+// Ayarlar'daki varsayılan süre: geçerliyse hemen saklanır, geçersizse kutu kırmızı kalır ve eski değer korunur.
+var hatVarsZ = null;
+function hatVarsDegisti() {
+  var m = $('hatVars').value.trim(), n = /^\d+$/.test(m) ? parseInt(m, 10) : null;
+  var gecerli = n !== null && n >= sinir.min && n <= sinir.max;
+  $('hatVars').classList.toggle('hatali', !gecerli);
+  if (!gecerli) return;
+  hat.varsayilan = n;
+  clearTimeout(hatVarsZ);
+  hatVarsZ = setTimeout(function () { api.set_reminder_minutes(n); }, 400);
+}
+function hatVarsAdimla(fark) {
+  $('hatVars').value = Math.min(sinir.max, Math.max(sinir.min, hat.varsayilan + fark));
+  hatVarsDegisti();
+}
+
+function hatKaydet() {
+  if ($('hatKaydet').disabled) return;
+  var z = hatSaat();
+  $('hatKaydet').disabled = true;
+  api.reminder_add({
+    minutes: hat.mod === 'dk' ? hatDakika() : null,
+    clock: hat.mod === 'saat' ? iki(z.s) + ':' + iki(z.d) : null,
+    note: $('hatNot').value, show: $('hatGoster').checked, sound: $('hatSes').checked, tone: hat.ton
+  }).then(function (r) {
+    if (r.ok) { $('hatNot').value = ''; hatPaneliAc(false); }
+    durumAl(r.state);
+  });
 }
 
 function secimiCiz() {
@@ -301,7 +525,7 @@ function secimiCiz() {
     var v = b.getAttribute('data-dk');
     b.setAttribute('aria-pressed', (v === '0' ? secim.infinite : (!secim.infinite && String(dk) === v)) ? 'true' : 'false');
   });
-  document.querySelectorAll('#islemler button').forEach(function (b) {
+  document.querySelectorAll('#islemler button[data-islem]').forEach(function (b) {
     var ad = b.getAttribute('data-islem');
     b.setAttribute('aria-checked', ad === secim.action ? 'true' : 'false');
     b.disabled = secim.infinite || (ad === 'hibernate' && !hazirdaVar) || (ad === 'sleep' && !uykuVar);
@@ -379,6 +603,7 @@ function calisanCiz() {
 
 function ortakCiz() {
   kapatIpucu();
+  hatCiz();
   var say = S && S.screen_in > 0;
   yaz($('ekranD'), say ? t('cancel_n', { n: S.screen_in }) : t('screen_btn'));
   $('ekranUyari').hidden = !say;
@@ -421,6 +646,9 @@ function ilkYukle(veri) {
     secim.infinite = veri.prefs.infinite;
     $('ozel').value = veri.prefs.infinite ? '' : veri.prefs.minutes;
     $('ses').checked = veri.prefs.sound; $('ekran').checked = veri.prefs.monitor_off;
+    $('hatGoster').checked = veri.prefs.rem_show; $('hatSes').checked = veri.prefs.rem_sound;
+    hat.ton = veri.prefs.rem_tone;
+    hat.varsayilan = veri.prefs.rem_minutes; $('hatVars').value = hat.varsayilan;
   }
   metinleriUygula();
   durumAl(veri.state);
@@ -451,17 +679,18 @@ function adimla(fark) {
 }
 var bekle = null, tekrar = null;
 function birak() { clearTimeout(bekle); clearInterval(tekrar); }
-function basiliTut(dugme, yon) {
+function basiliTut(dugme, yon, is) {
+  is = is || adimla;
   dugme.addEventListener('pointerdown', function (e) {
     if (e.button !== 0) return;
-    birak(); adimla(yon);
+    birak(); is(yon);
     var sayi = 0;
     bekle = setTimeout(function () {
-      tekrar = setInterval(function () { sayi++; adimla(yon * (sayi > 20 ? 5 : 1)); }, 80);
+      tekrar = setInterval(function () { sayi++; is(yon * (sayi > 20 ? 5 : 1)); }, 80);
     }, 400);
   });
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ad) { dugme.addEventListener(ad, birak); });
-  dugme.addEventListener('click', function (e) { if (e.detail === 0) adimla(yon); });
+  dugme.addEventListener('click', function (e) { if (e.detail === 0) is(yon); });
 }
 
 function baslatDurdur() {
@@ -490,7 +719,55 @@ function kur() {
   $('kucult').addEventListener('click', function () { api.minimize(); });
   $('kapat').addEventListener('click', function () { api.hide(); });
   $('ayarD').addEventListener('click', function () { paneliAc($('panel').hidden); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('panel').hidden) paneliAc(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (!$('panel').hidden) paneliAc(false);
+    if (!$('hatPanel').hidden) hatPaneliAc(false);
+  });
+
+  [$('hatD'), $('zilD')].forEach(function (d) {
+    d.addEventListener('click', function () { hatPaneliAc($('hatPanel').hidden); });
+  });
+  document.querySelectorAll('#hatHazir button').forEach(function (b) {
+    b.addEventListener('click', function () { hat.mod = 'dk'; $('hatDk').value = b.getAttribute('data-dk'); hatFormCiz(); });
+  });
+  basiliTut($('hatEksi'), -1, hatAdimla);
+  basiliTut($('hatArti'), 1, hatAdimla);
+  $('hatDk').addEventListener('input', function () { hat.mod = 'dk'; hatFormCiz(); });
+  $('hatSaat').addEventListener('input', function () { hat.mod = 'saat'; hatFormCiz(); });
+  $('hatSaat').addEventListener('blur', hatFormCiz);
+  $('hatDk').addEventListener('blur', hatFormCiz);
+  $('hatDk').addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowUp') { e.preventDefault(); hatAdimla(1); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); hatAdimla(-1); }
+  });
+  $('hatDk').addEventListener('wheel', function (e) { e.preventDefault(); hatAdimla(e.deltaY < 0 ? 1 : -1); }, { passive: false });
+  [$('hatDk'), $('hatSaat'), $('hatNot')].forEach(function (g) {
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter') hatKaydet(); });
+  });
+  [$('hatDk'), $('hatSaat')].forEach(function (g) { g.addEventListener('focus', function () { g.select(); }); });
+  // İkisi birden kapatılamaz: hiçbir şey yapmayan hatırlatıcı olmaz.
+  $('hatGoster').addEventListener('change', function () { if (!$('hatGoster').checked) $('hatSes').checked = true; hatFormCiz(); });
+  $('hatSes').addEventListener('change', function () { if (!$('hatSes').checked) $('hatGoster').checked = true; hatFormCiz(); });
+  // Ses seçilince hemen çalar: adından değil kulaktan seçilir.
+  document.querySelectorAll('#hatTon button').forEach(function (b) {
+    b.addEventListener('click', function () { hat.ton = b.getAttribute('data-ton'); hatFormCiz(); api.reminder_preview(hat.ton); });
+  });
+  $('hatDinle').addEventListener('click', function () { api.reminder_preview(hat.ton); });
+  $('hatKaydet').addEventListener('click', hatKaydet);
+  basiliTut($('hatVarsEksi'), -1, hatVarsAdimla);
+  basiliTut($('hatVarsArti'), 1, hatVarsAdimla);
+  $('hatVars').addEventListener('input', hatVarsDegisti);
+  $('hatVars').addEventListener('focus', function () { $('hatVars').select(); });
+  $('hatVars').addEventListener('blur', function () { $('hatVars').value = hat.varsayilan; $('hatVars').classList.remove('hatali'); });
+  $('hatVars').addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowUp') { e.preventDefault(); hatVarsAdimla(1); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); hatVarsAdimla(-1); }
+  });
+  $('hatVars').addEventListener('wheel', function (e) { e.preventDefault(); hatVarsAdimla(e.deltaY < 0 ? 1 : -1); }, { passive: false });
+  var hatHazir = function () { return hat.gosterilen && Date.now() - hat.gosterildi >= HAT_KORUMA; };
+  $('hatTamam').addEventListener('click', function () { if (hatHazir()) api.reminder_dismiss(hat.gosterilen).then(durumAl); });
+  $('hatErtele').addEventListener('click', function () { if (hatHazir()) api.reminder_snooze(hat.gosterilen).then(durumAl); });
   document.querySelectorAll('#gorunum button').forEach(function (b) {
     b.addEventListener('click', function () {
       api.set_visibility(b.getAttribute('data-mod')).then(function (mod) { gorunum = mod; panelCiz(); });
@@ -508,7 +785,7 @@ function kur() {
       degisti();
     });
   });
-  document.querySelectorAll('#islemler button').forEach(function (b) {
+  document.querySelectorAll('#islemler button[data-islem]').forEach(function (b) {
     b.addEventListener('click', function () { secim.action = b.getAttribute('data-islem'); degisti(); });
   });
   $('ses').addEventListener('change', degisti);

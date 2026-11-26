@@ -7,9 +7,12 @@
  * yollar ve tek parca yazilar vardir. En kucuk yazi 22 piksel.
  *
  * tus(tur, D) -> SVG metni
- *   tur: "ana" | "eksi" | "arti" | "bitince" | "ekran"
- *   D:   { S, P, aciliyor, eski, dil }
+ *   tur: "ana" | "eksi" | "arti" | "bitince" | "ekran" | "hat"
+ *   D:   { S, P, K, yan, aciliyor, eski, dil }
  *        S = Insomnia'nin durumu (kapaliysa null), P = { dk, islem } secili sure ve bitis islemi
+ *        K = hatirlatici tusu "kurma" kipindeyken { mod: "kur", dk } ya da { mod: "duzenle", id }; degilse null.
+ *            K varken eksi/arti tuslari altin renkte cizilir ve hatirlaticinin suresini ayarlar.
+ *        yan = calan hatirlatici tusunun yanip sonmesi icin (her yoklamada degisir)
  */
 
 const ALTIN = "#ffc21a";
@@ -28,6 +31,35 @@ export const MERDIVEN = [15, 30, 45, 60, 90, 120, 180, 240, 360, 480, 0]; // sec
 export const ADIM_SN = 900; // calisan oturuma eklenen/cikarilan sure
 export const EN_AZ_SN = 60; // sure cikarilirken kalan sure bunun altina inemez (Insomnia ile ayni)
 
+// Hatirlatici tusu
+export const HAT_MERDIVEN = [1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240]; // tustan kurulabilen sureler (dk)
+export const HAT_ADIM_SN = 300; // bekleyen hatirlaticiya eklenen/cikarilan sure
+export const HAT_EN_COK_SN = 1440 * 60;
+
+// Merdivende 'dk'dan sonraki (yon > 0) ya da onceki basamak; yoksa null. Baslangic suresi
+// Ayarlar'dan gelir ve merdivende olmayabilir (26 dk gibi): o zaman en yakin basamaga gidilir.
+export function hatBasamak(dk, yon) {
+  if (yon > 0) {
+    for (const b of HAT_MERDIVEN) if (b > dk) return b;
+    return null;
+  }
+  for (let i = HAT_MERDIVEN.length - 1; i >= 0; i--) if (HAT_MERDIVEN[i] < dk) return HAT_MERDIVEN[i];
+  return null;
+}
+export function hatBekleyen(S, id) {
+  const R = S && S.reminders;
+  return (R && Array.isArray(R.pending) && R.pending.find((h) => h.id === id)) || null;
+}
+// Kurma kipinde sure tusu bu yonde bir sey yapabilir mi?
+export function hatAdimVar(yon, S, K) {
+  if (!S || !S.reminders || !K) return false;
+  if (K.mod === "kur") return hatBasamak(K.dk, yon) !== null;
+  const h = hatBekleyen(S, K.id);
+  if (!h) return false;
+  const kalan = h.left + yon * HAT_ADIM_SN;
+  return kalan >= EN_AZ_SN && kalan <= HAT_EN_COK_SN;
+}
+
 // Sure tusu bu yonde bir sey yapabilir mi? Yapamiyorsa tus soluk cizilir ve basis yok sayilir.
 export function adimVar(yon, S, P) {
   if (!S) return true;
@@ -41,12 +73,14 @@ export const IRENK = { none: GRI, shutdown: "#ff4b3e", restart: "#ff9500", sleep
 const METIN = {
   tr: {
     kapali: "Kapalı", aciliyor: "Açılıyor", guncelle: "Güncelle", vazgec: "VAZGEÇ", sure: "Süre", bitince: "BİTİNCE", ekran: "EKRANI", ekranKapat: "Kapat", kapaniyor: "KAPANIYOR", iptal: "İptal",
+    hatirlat: "HATIRLAT", kur: "KUR", iptalmi: "İPTAL?", sil: "Sil", tamam: "TAMAM", hatirlatma: "Hatırlatma", hatSure: "Hatırlat",
     dk: "dk", sa: "sa", sn: "sn",
     kisa: { none: "Yok", shutdown: "Kapat", restart: "Yeniden", sleep: "Uyut", hibernate: "Beklet" },
     simdi: { shutdown: ["ŞİMDİ", "Kapat"], restart: ["ŞİMDİ YENİDEN", "Başlat"], sleep: ["ŞİMDİ", "Uyut"], hibernate: ["ŞİMDİ HAZIRDA", "Beklet"] },
   },
   en: {
     kapali: "Closed", aciliyor: "Opening", guncelle: "Update", vazgec: "CANCEL", sure: "Time", bitince: "WHEN DONE", ekran: "SCREEN", ekranKapat: "Turn off", kapaniyor: "TURNING OFF", iptal: "Cancel",
+    hatirlat: "REMINDER", kur: "SET", iptalmi: "CANCEL?", sil: "Delete", tamam: "OK", hatirlatma: "Reminder", hatSure: "Remind",
     dk: "m", sa: "h", sn: "s",
     kisa: { none: "None", shutdown: "Shut down", restart: "Restart", sleep: "Sleep", hibernate: "Hibernate" },
     simdi: { shutdown: ["NOW", "Shut down"], restart: ["NOW", "Restart"], sleep: ["NOW", "Sleep"], hibernate: ["NOW", "Hibernate"] },
@@ -174,6 +208,14 @@ function adimTusu(yon, D, T) {
     `<path d="M68 73h60${yon > 0 ? "M98 43v60" : ""}" stroke="${renk}" stroke-width="16" stroke-linecap="round" fill="none"/>`;
   const { S } = D;
   if (!S) return kapaliTus(cizim(SOLUK, KUTU_SOLUK), D, T);
+  // Hatirlatici kurma kipi: tus altin olur; neyi ayarladigi renginden anlasilir.
+  if (D.K && S.reminders) {
+    const yok = !hatAdimVar(yon, S, D.K);
+    return svg(
+      cizim(yok ? SOLUK : KOYU, yok ? KUTU_SOLUK : ALTIN) +
+        yazi(D.K.mod === "kur" ? T.hatSure : HAT_ADIM_SN / 60 + " " + T.dk, 174, 30, yok ? SOLUK : ALTIN)
+    );
+  }
   const pasif = !adimVar(yon, S, D.P);
   return svg(
     cizim(pasif ? SOLUK : KREM, pasif ? KUTU_SOLUK : KUTU) +
@@ -217,8 +259,76 @@ function ekranTusu(D, T) {
   return svg(yazi(T.ekran, 30, 22, GRI) + `<g transform="translate(27.4 24) scale(0.72)">${mon(KREM)}</g>` + yazi(T.ekranKapat, 178, 32, KREM));
 }
 
+// Zil simgesi: (cx, cy) merkezli, 'boy' piksel.
+function zil(cx, cy, boy, renk) {
+  const o = boy / 24;
+  const c = `fill="none" stroke="${renk}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"`;
+  return (
+    `<g transform="translate(${(cx - 12 * o).toFixed(1)} ${(cy - 12 * o).toFixed(1)}) scale(${o.toFixed(3)})">` +
+    `<path ${c} d="M6 16.4V11a6 6 0 0 1 12 0v5.4l1.7 2.3H4.3z"/><path ${c} d="M10 21.7h4"/></g>`
+  );
+}
+function kisaSure(dk, T) {
+  if (dk < 60) return dk + " " + T.dk;
+  if (dk % 60 === 0) return dk / 60 + " " + T.sa;
+  return Math.floor(dk / 60) + ":" + iki(dk % 60);
+}
+function buyukSure(dk, y, T, renk) {
+  if (dk < 60) return sayiBirim(dk, T.dk, y, 84, 34, renk);
+  if (dk % 60 === 0) return sayiBirim(dk / 60, T.sa, y, 84, 34, renk);
+  return yazi(Math.floor(dk / 60) + ":" + iki(dk % 60), y, 72, renk);
+}
+// Kalan sure: son dakikada saniye, bir saatten uzunsa saat:dakika.
+function kalanYazi(sn, y, renk, T) {
+  const k = Math.max(0, Math.round(Number(sn) || 0)), dk = Math.ceil(k / 60);
+  if (k <= 60) return sayiBirim(k, T.sn, y, 76, 30, renk);
+  if (dk >= 60) return yazi(Math.floor(dk / 60) + ":" + iki(dk % 60), y, 64, renk);
+  return sayiBirim(dk, T.dk, y, 76, 30, renk);
+}
+function kisalt(s, n) {
+  const a = Array.from(String(s));
+  return a.length > n ? a.slice(0, n - 1).join("") + "…" : a.join("");
+}
+
+/**
+ * Hatirlatici tusu. Oteki tuslarla ayni duzen: ustte ne oldugu, ortada deger, altta basinca ne olacagi.
+ *   bosta     HATIRLAT / zil / baslangic suresi        -> basinca kurma kipi
+ *   kur       altin zemin: HATIRLAT / sure / KUR       -> eksi-arti sureyi degistirir, basinca kurar
+ *   bekliyor  HATIRLAT / kalan sure / ilerleme cubugu  -> basinca duzenleme kipi
+ *   duzenle   altin zemin: IPTAL? / kalan sure / Sil   -> eksi-arti 5 dk oynatir, basinca siler
+ *   caliyor   yanip sonen altin: zil / not / TAMAM     -> basinca kapatir
+ * Calisan oturumu gosteren ana tus halka kullandigi icin burada bilerek cubuk var: iki sayac yan yana karismaz.
+ */
+function hatTusu(D, T) {
+  const { S, K } = D;
+  if (!S) return kapaliTus(zil(98, 80, 104, SOLUK), D, T);
+  const R = S.reminders;
+  if (!R) return svg(zil(98, 80, 104, SOLUK) + yazi(T.guncelle, 176, 28, ALTIN)); // hatirlatici 1.5.0 ile geldi
+  if (R.due) {
+    const zemin = D.yan ? ZEMIN : ALTIN, renk = D.yan ? ALTIN : KOYU;
+    return svg(zil(98, 54, 84, renk) + yazi(kisalt(R.due.note || T.hatirlatma, 13), 134, 24, renk) + yazi(T.tamam, 180, 32, renk), zemin);
+  }
+  const bekleyen = Array.isArray(R.pending) ? R.pending : [];
+  if (K && K.mod === "kur") return svg(yazi(T.hatirlat, 30, 22, KOYU) + buyukSure(K.dk, 124, T, KOYU) + yazi(T.kur, 180, 32, KOYU), ALTIN);
+  const h = K && K.mod === "duzenle" ? hatBekleyen(S, K.id) : null;
+  if (h) return svg(yazi(T.iptalmi, 30, 22, KOYU) + kalanYazi(h.left, 120, KOYU, T) + yazi(T.sil, 180, 32, KOYU), ALTIN);
+  if (bekleyen.length) {
+    const ilk = bekleyen[0], kalan = Number(ilk.left) || 0, toplam = Number(ilk.span) || 0;
+    const oran = toplam > 0 ? Math.max(0, Math.min(1, kalan / toplam)) : 1;
+    const ust = bekleyen.length > 1 ? T.hatirlat + " +" + (bekleyen.length - 1) : T.hatirlat;
+    return svg(
+      yazi(ust, 30, 22, ALTIN) + kalanYazi(kalan, 120, KREM, T) +
+        `<rect x="28" y="150" width="140" height="16" rx="8" fill="${IZ}"/>` +
+        `<rect x="28" y="150" width="${(16 + 124 * oran).toFixed(1)}" height="16" rx="8" fill="${ALTIN}"/>`
+    );
+  }
+  const dk = Number.isInteger(R.default) && R.default > 0 ? R.default : 15;
+  return svg(yazi(T.hatirlat, 30, 22, GRI) + zil(98, 92, 92, KREM) + yazi(kisaSure(dk, T), 178, 32, KREM));
+}
+
 export function tus(tur, D) {
   const T = METIN[D.dil] || METIN.en;
+  if (tur === "hat") return hatTusu(D, T);
   if (tur === "ana") return anaTus(D, T);
   if (tur === "eksi") return adimTusu(-1, D, T);
   if (tur === "arti") return adimTusu(1, D, T);

@@ -17,6 +17,7 @@ MAX_MINUTES = 1440
 LANGUAGES = ("tr", "en", "de", "fr", "es")
 # Program nerede görünsün: ikisi de, yalnız saatin yanı (tepsi), yalnız görev çubuğu
 VISIBILITY = ("both", "tray", "taskbar")
+REMINDER_TONES = ("soft", "alarm")  # reminders.TONES ile aynı (sınama denetler)
 
 DEFAULTS = {
     "duration_minutes": 60,
@@ -26,6 +27,10 @@ DEFAULTS = {
     "language": "tr",
     "visibility": "both",
     "tray_hint_shown": False,
+    "reminder_show": True,
+    "reminder_sound": True,
+    "reminder_tone": "soft",
+    "reminder_minutes": 15,  # yeni hatırlatıcının başlangıç süresi (Ayarlar'dan değişir)
 }
 
 
@@ -48,15 +53,18 @@ def clean(data) -> dict:
     out = dict(DEFAULTS)
     if not isinstance(data, dict):
         return out
-    if valid_minutes(data.get("duration_minutes")):
-        out["duration_minutes"] = data["duration_minutes"]
-    for key in ("infinite", "sound_enabled", "monitor_off", "tray_hint_shown"):
+    for key in ("duration_minutes", "reminder_minutes"):
+        if valid_minutes(data.get(key)):
+            out[key] = data[key]
+    for key in ("infinite", "sound_enabled", "monitor_off", "tray_hint_shown", "reminder_show", "reminder_sound"):
         if isinstance(data.get(key), bool):
             out[key] = data[key]
     if data.get("language") in LANGUAGES:
         out["language"] = data["language"]
     if data.get("visibility") in VISIBILITY:
         out["visibility"] = data["visibility"]
+    if data.get("reminder_tone") in REMINDER_TONES:
+        out["reminder_tone"] = data["reminder_tone"]
     return out
 
 

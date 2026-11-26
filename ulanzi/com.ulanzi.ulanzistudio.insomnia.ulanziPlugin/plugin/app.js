@@ -6,11 +6,15 @@
  *   GET  http://127.0.0.1:<kapi>/durum    -> oturum durumu
  *   POST http://127.0.0.1:<kapi>/komut    -> komut
  *
- * Bes tus vardir:
+ * Alti tus vardir:
  *   ana      bostayken baslatir, calisirken durdurur, uyarida vazgecer
  *   eksi/arti bostayken baslatilacak sureyi secer; calisirken 15 dk cikarir/ekler
  *   bitince  sure bitince ne olacagini secer (yok, kapat, yeniden baslat, uyut, hazirda beklet); 60 sn'lik uyarida "simdi yap" olur
  *   ekran    ekrani 10 sn sonra kapatir; tekrar basinca iptal eder
+ *   hat      hatirlatici (Insomnia 1.5.0+). Ilk basis "kurma kipi"ni acar: tus ve eksi/arti altin olur,
+ *            eksi/arti birkac saniyeligine hatirlaticinin suresini ayarlar; ikinci basis kurar.
+ *            Bekleyen hatirlatici varken ayni yol onu duzenler (eksi/arti 5 dk oynatir, ikinci basis siler).
+ *            Calarken tek basis kapatir. Kipte bir sure dokunulmazsa hicbir sey yapmadan cikilir.
  *
  * Insomnia kapaliyken bir tusa basilirsa program tepside acilir; basilan tus
  * ana ya da ekran ise istek program acilinca yerine getirilir.
@@ -21,16 +25,19 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import http from "http";
 import { join } from "path";
 import { UlanziApi } from "../plugin-common-node/index.js";
-import { ADIM_SN, ISLEMLER, MERDIVEN, adimVar, tus } from "./cizim.js";
+import { ADIM_SN, HAT_ADIM_SN, ISLEMLER, MERDIVEN, adimVar, hatAdimVar, hatBasamak, tus } from "./cizim.js";
 
 const PLUGIN_UUID = "com.ulanzi.ulanzistudio.insomnia";
-const TURLER = ["ana", "eksi", "arti", "bitince", "ekran"];
+const TURLER = ["ana", "eksi", "arti", "bitince", "ekran", "hat"];
 const YOKLAMA_MS = 500;
 const ISTEK_MS = 1500;
 const BAYAT_MS = 2000; // bundan eski durum bilgisine guvenilmez
 const ACILMA_MS = 20000; // program acilirken en cok bu kadar beklenir
 const CIFT_BASIS_MS = 500;
 const SIMDI_KORUMA_MS = 2000; // uyari basladiktan sonra "simdi yap" bu kadar sure calismaz
+const KUR_MS = 6000; // hatirlatici kurma kipi: son dokunustan sonra bu kadar surer
+const HAT_CIFT_MS = 250; // hatirlatici tusunda iki basis bilerek yapilir; yalniz tus sekmesi elenir
+const HAT_KORUMA_MS = 1000; // hatirlatici calmaya basladiktan sonra "tamam" bu kadar sure calismaz
 
 const YEREL = process.env.LOCALAPPDATA || "";
 const KAPI_DOSYASI = join(YEREL, "Insomnia", "kumanda.json");
@@ -49,6 +56,10 @@ let acilmaSonu = 0; // program acilirken: beklemenin bitecegi an
 let bekleyen = null; // program acilinca yollanacak komut
 let eskiSurum = false; // program acildi ama kumanda kapisi gelmedi (1.2.0 oncesi Insomnia)
 let uyariBasi = 0;
+let K = null; // hatirlatici kurma kipi: { mod: "kur", dk, son } | { mod: "duzenle", id, son }; degilse null
+let calanHat = null; // calan hatirlaticinin kimligi
+let calmaBasi = 0;
+let yan = false; // calan hatirlatici tusu her yoklamada renk degistirir
 let sonDurumAni = 0;
 let zamanlayici = null;
 let yokluyor = false;
@@ -139,6 +150,14 @@ function durumAl(yeni) {
   if (gecerli && gecerli.phase === "warning" && !oncekiUyari) uyariBasi = simdi;
   sonDurumAni = simdi;
   S = gecerli;
+  const R = S && S.reminders;
+  if (!(R && R.due)) calanHat = null;
+  else if (calanHat !== R.due.id) {
+    calanHat = R.due.id;
+    calmaBasi = simdi;
+  }
+  // Kip biter: suresi doldu, program kapandi, hatirlatici calmaya basladi ya da duzenlenen hatirlatici artik yok.
+  if (K && (!R || R.due || simdi > K.son || (K.mod === "duzenle" && !(Array.isArray(R.pending) && R.pending.some((h) => h.id === K.id))))) K = null;
   if (S) {
     acilmaSonu = 0;
     eskiSurum = false;
@@ -164,6 +183,7 @@ async function yokla() {
   yokluyor = true;
   try {
     durumAl(await istek("/durum"));
+    yan = !yan;
     if (S && bekleyen) {
       const b = bekleyen;
       bekleyen = null;
@@ -206,7 +226,8 @@ function programiAc(context) {
 // ---------------------------------------------------------------- cizim --
 
 function ciz() {
-  const D = { S, P, aciliyor: !S && acilmaSonu > 0, eski: eskiSurum, dil: (S && S.lang) || sonDil };
+  if (K && Date.now() > K.son) K = null;
+  const D = { S, P, K, yan, aciliyor: !S && acilmaSonu > 0, eski: eskiSurum, dil: (S && S.lang) || sonDil };
   if (S && S.lang) sonDil = S.lang;
   for (const [context, tur] of tuslar) {
     const svg = tus(tur, D);
@@ -238,6 +259,16 @@ function baslatKomutu() {
 }
 
 function sureTusu(yon, context) {
+  // Hatirlatici kurma kipinde bu tuslar oturumu degil hatirlaticiyi ayarlar.
+  if (K && S && S.reminders) {
+    if (!hatAdimVar(yon, S, K)) return;
+    K.son = Date.now() + KUR_MS;
+    if (K.mod === "kur") {
+      K.dk = hatBasamak(K.dk, yon);
+      return ciz();
+    }
+    return komut({ komut: "reminder_adjust", id: K.id, seconds: yon * HAT_ADIM_SN }, context);
+  }
   if (!adimVar(yon, S, P)) return; // tus soluk: yapacak bir sey yok, uyari da gosterme
   if (S.phase === "running") return komut({ komut: "adjust", seconds: yon * ADIM_SN }, context);
   let i = MERDIVEN.indexOf(P.dk);
@@ -284,8 +315,37 @@ function bitinceTusu(context) {
   ciz();
 }
 
+function hatTusu(context) {
+  const R = S.reminders;
+  if (!R) return $UD.showAlert(context); // Insomnia 1.5.0'dan eski: tus "Guncelle" gosterir
+  if (R.due) {
+    // Tam calmaya basladigi anda (baska bir sey icin) basilan tus hatirlaticiyi gorulmeden kapatmasin.
+    if (Date.now() - calmaBasi < HAT_KORUMA_MS) return;
+    return komut({ komut: "reminder_dismiss", id: R.due.id }, context);
+  }
+  if (K && K.mod === "kur") {
+    const dk = K.dk;
+    K = null;
+    return komut({ komut: "reminder_add", minutes: dk }, context);
+  }
+  if (K && K.mod === "duzenle") {
+    const id = K.id;
+    K = null;
+    return komut({ komut: "reminder_remove", id }, context);
+  }
+  const son = Date.now() + KUR_MS;
+  const bekleyenler = Array.isArray(R.pending) ? R.pending : [];
+  const dk = Number.isInteger(R.default) && R.default > 0 ? R.default : 15;
+  K = bekleyenler.length ? { mod: "duzenle", id: bekleyenler[0].id, son } : { mod: "kur", dk, son };
+  ciz();
+}
+
 async function bas(context, tur) {
   const simdi = Date.now();
+  if (tur === "hat") {
+    if (simdi - (sonBasis.get(context) || 0) < HAT_CIFT_MS) return;
+    sonBasis.set(context, simdi);
+  }
   const tekrarKorumali = tur === "ana" || tur === "ekran" || (tur === "bitince" && S && S.phase === "warning");
   if (tekrarKorumali) {
     if (simdi - (sonBasis.get(context) || 0) < CIFT_BASIS_MS) return;
@@ -299,6 +359,7 @@ async function bas(context, tur) {
     programiAc(context);
     return;
   }
+  if (tur === "hat") return hatTusu(context);
   if (tur === "ana") {
     if (S.phase === "warning") return komut({ komut: "cancel" }, context);
     if (S.phase === "running") return komut({ komut: "stop" }, context);

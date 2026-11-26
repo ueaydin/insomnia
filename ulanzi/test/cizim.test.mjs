@@ -5,9 +5,9 @@
 // uretilebilen butun tus goruntuleri burada kati bir XML denetiminden gecirilir.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ISLEMLER, MERDIVEN, adimVar, tus } from "../com.ulanzi.ulanzistudio.insomnia.ulanziPlugin/plugin/cizim.js";
+import { HAT_MERDIVEN, ISLEMLER, MERDIVEN, adimVar, hatAdimVar, hatBasamak, tus } from "../com.ulanzi.ulanzistudio.insomnia.ulanziPlugin/plugin/cizim.js";
 
-const TURLER = ["ana", "eksi", "arti", "bitince", "ekran"];
+const TURLER = ["ana", "eksi", "arti", "bitince", "ekran", "hat"];
 const IZINLI = new Set(["svg", "rect", "circle", "path", "text", "g"]); // bilerek dar: mask, tspan, gradyan yok
 
 // Kucuk, kati bir XML okuyucu: etiketler dengeli, ozellikler tekil ve tirnakli, metinde cplak & ve < yok.
@@ -83,6 +83,97 @@ test("butun tus goruntuleri gecerli ve sade SVG", () => {
               sayi++;
             }
   assert.ok(sayi > 10000);
+});
+
+// ---------------------------------------------------------------- hatirlatici tusu --
+
+const H = (id, left, span, note) => ({ id, time: "14:30", tomorrow: false, note: note || "", show: true, sound: true, left, span });
+function hatDurumlari() {
+  const R = (pending, due, ek) => ({ pending, due: due || null, max: 3, snooze: 10, default: 15, ...ek });
+  const liste = [
+    R([]), R([], null, { default: 26 }), R([], null, { default: 90 }), R([], null, { default: 240 }), R([], null, { default: undefined }),
+    R([H("a", 900, 900)]), R([H("a", 61, 900)]), R([H("a", 60, 900)]), R([H("a", 1, 900)]), R([H("a", 0, 900)]),
+    R([H("a", 5400, 7200)]), R([H("a", 86400, 86400)]), R([H("a", 300, 0)]), R([H("a", 900, 300)]),
+    R([H("a", 120, 600), H("b", 900, 900)]), R([H("a", 120, 600), H("b", 900, 900), H("c", 3600, 3600)]),
+    R([H("a", undefined, undefined)]), R(undefined),
+    R([], { id: "d", note: "Çayı kapat", time: "14:30", late: false, more: 0 }),
+    R([], { id: "d", note: "", time: "14:30", late: true, more: 2 }),
+    R([H("a", 900, 900)], { id: "d", note: "Çok uzun bir not: <rapor> & toplantı odası", time: "14:30", late: false, more: 0 }),
+  ];
+  const taban = { app: "Insomnia", infinite: false, total: 900, remaining: 600, action: "none", screen_in: 0, warn_in: 0, ending: false };
+  const d = [];
+  for (const reminders of liste)
+    for (const phase of ["idle", "running", "warning"]) d.push({ ...taban, phase, reminders });
+  return d;
+}
+const KIPLER = [null, { mod: "kur", dk: 15 }, { mod: "kur", dk: 1 }, { mod: "kur", dk: 26 }, { mod: "kur", dk: 90 }, { mod: "kur", dk: 240 }, { mod: "duzenle", id: "a" }, { mod: "duzenle", id: "yok" }];
+
+test("hatirlatici tusu ve kurma kipindeki sure tuslari gecerli ve sade SVG", () => {
+  let sayi = 0;
+  for (const dil of ["tr", "en", "de"])
+    for (const S of hatDurumlari())
+      for (const K of KIPLER)
+        for (const yan of [false, true])
+          for (const tur of ["hat", "eksi", "arti"]) {
+            const s = tus(tur, { S, P: { dk: 15, islem: "none" }, K, yan, dil });
+            try {
+              xmlDenetle(s);
+            } catch (e) {
+              throw new Error(`${tur} ${dil} K=${JSON.stringify(K)} ${JSON.stringify(S.reminders)}: ${e.message}`);
+            }
+            assert.ok(!s.includes(">undefined") && !s.includes(">NaN") && !s.includes("undefined<"), `${tur}: bos yazi ${s}`);
+            sayi++;
+          }
+  assert.ok(sayi > 3000);
+});
+
+test("hatirlatici tusu her durumda farkli gorunur", () => {
+  const taban = { app: "Insomnia", phase: "idle", reminders: { pending: [], due: null, max: 3, snooze: 10, default: 15 } };
+  const bekleyen = { ...taban, reminders: { ...taban.reminders, pending: [H("a", 600, 900)] } };
+  const calan = { ...taban, reminders: { ...taban.reminders, due: { id: "d", note: "Çay", time: "14:30", late: false, more: 0 } } };
+  const ciz = (S, K, yan) => tus("hat", { S, P: { dk: 15, islem: "none" }, K: K || null, yan: !!yan, dil: "tr" });
+  const hepsi = [
+    ciz(null), ciz({ app: "Insomnia", phase: "idle" }), ciz(taban), ciz(taban, { mod: "kur", dk: 15 }), ciz(taban, { mod: "kur", dk: 20 }),
+    ciz(bekleyen), ciz(bekleyen, { mod: "duzenle", id: "a" }), ciz(calan), ciz(calan, null, true),
+  ];
+  assert.equal(new Set(hepsi).size, hepsi.length);
+  assert.ok(/>Güncelle</.test(hepsi[1]), "eski Insomnia'da Guncelle yazmali");
+  assert.ok(/>KUR</.test(hepsi[3]) && />15</.test(hepsi[3]));
+  assert.ok(/>İPTAL\?</.test(hepsi[6]) && />Sil</.test(hepsi[6]));
+  assert.ok(/>Çay</.test(hepsi[7]) && />TAMAM</.test(hepsi[7]));
+  // Not yoksa "Hatırlatma"; uzun not kisalir, ozel karakterler kacisli yazilir.
+  const uzun = { ...taban, reminders: { ...taban.reminders, due: { id: "d", note: "<b>Çok & uzun bir not</b>", time: "1", late: false, more: 0 } } };
+  assert.ok(/>&lt;b&gt;Çok &amp; uzu…</.test(ciz(uzun)), ciz(uzun));
+  assert.ok(/>Hatırlatma</.test(ciz({ ...taban, reminders: { ...taban.reminders, due: { id: "d", note: "", time: "1", late: true, more: 0 } } })));
+  // Kurma kipinde sure tuslari oturum tuslarindan farkli (altin) cizilir; kip yokken eskisi gibi.
+  const arti = (K) => tus("arti", { S: taban, P: { dk: 15, islem: "none" }, K, dil: "tr" });
+  assert.notEqual(arti(null), arti({ mod: "kur", dk: 15 }));
+  assert.ok(/>Süre</.test(arti(null)) && />Hatırlat</.test(arti({ mod: "kur", dk: 15 })));
+  assert.ok(/>5 dk</.test(tus("arti", { S: bekleyen, P: { dk: 15, islem: "none" }, K: { mod: "duzenle", id: "a" }, dil: "tr" })));
+  // Eski Insomnia (reminders yok): kip olsa bile sure tuslari oturum tusu olarak kalir.
+  const eski = { app: "Insomnia", phase: "idle" };
+  assert.equal(tus("arti", { S: eski, P: { dk: 15, islem: "none" }, K: { mod: "kur", dk: 15 }, dil: "tr" }), tus("arti", { S: eski, P: { dk: 15, islem: "none" }, K: null, dil: "tr" }));
+});
+
+test("hatirlatici sure basamaklari", () => {
+  assert.equal(hatBasamak(15, 1), 20);
+  assert.equal(hatBasamak(15, -1), 10);
+  assert.equal(hatBasamak(26, 1), 30); // Ayarlar'dan gelen ara deger en yakin basamaga gider
+  assert.equal(hatBasamak(26, -1), 20);
+  assert.equal(hatBasamak(1, -1), null);
+  assert.equal(hatBasamak(HAT_MERDIVEN[HAT_MERDIVEN.length - 1], 1), null);
+  assert.equal(hatBasamak(1000, 1), null);
+  assert.equal(hatBasamak(1000, -1), 240);
+  const S = { reminders: { pending: [H("a", 359, 900), H("b", 86400 - 200, 86400)] } };
+  assert.equal(hatAdimVar(-1, S, { mod: "kur", dk: 1 }), false);
+  assert.equal(hatAdimVar(1, S, { mod: "kur", dk: 1 }), true);
+  assert.equal(hatAdimVar(-1, S, { mod: "duzenle", id: "a" }), false); // 59 sn kalirdi
+  assert.equal(hatAdimVar(1, S, { mod: "duzenle", id: "a" }), true);
+  assert.equal(hatAdimVar(1, S, { mod: "duzenle", id: "b" }), false); // 24 saati asardi
+  assert.equal(hatAdimVar(1, S, { mod: "duzenle", id: "yok" }), false);
+  assert.equal(hatAdimVar(1, S, null), false);
+  assert.equal(hatAdimVar(1, { phase: "idle" }, { mod: "kur", dk: 15 }), false); // eski Insomnia
+  assert.equal(hatAdimVar(1, null, { mod: "kur", dk: 15 }), false);
 });
 
 test("her islemin kendi simgesi ve yazisi var", () => {

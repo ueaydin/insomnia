@@ -4,18 +4,23 @@
 
 Bilgisayarı belirlediğin süre boyunca uyanık tutan küçük bir Windows programı.
 Süre dolunca istersen bilgisayarı kapatır, yeniden başlatır, uyku moduna alır ya da hazırda bekletir.
+İçinde küçük bir hatırlatıcı da var.
 
 **Ulanzi D200 için hazırlandı:** program, Ulanzi D200 tuş takımından yönetilebilir. Eklentisi bu depoda
-(`ulanzi` klasörü) ve kurulum paketinin içinde gelir; tuşlardan oturum başlatılır, durdurulur, süre eklenir
-ve bitişte ne olacağı seçilir. Cihazı olmayanlar için program tek başına da eksiksiz çalışır.
+(`ulanzi` klasörü) ve kurulum paketinin içinde gelir; tuşlardan oturum başlatılır, durdurulur, süre eklenir,
+bitişte ne olacağı seçilir ve hatırlatıcı kurulur. Cihazı olmayanlar için program tek başına da eksiksiz çalışır.
 
-Sürüm: 1.4.1 · **Nihai sürüm**
+Sürüm: 1.5.0
 
 ![Insomnia penceresi, hazır](docs/window-idle.png)
 
 | Çalışırken | Son dakika |
 | --- | --- |
 | ![Oturum sürüyor](docs/window-running.png) | ![60 saniyelik uyarı](docs/window-warning.png) |
+
+| Hatırlatıcı | Zamanı gelince |
+| --- | --- |
+| ![Hatırlatıcı paneli](docs/window-reminder.png) | ![Hatırlatma ekranı](docs/window-reminder-due.png) |
 
 Ulanzi D200'de:
 
@@ -29,6 +34,9 @@ Görüntüler programın İngilizce halinden alındı; program Türkçe de çal�
 - **Süre bitince:** bir şey yapma, bilgisayarı kapat, yeniden başlat, uyku moduna al, hazırda beklet.
 - **Sesli uyarı:** süre dolunca iki kısa bip.
 - **Ekranı kapat:** düğmeyle ya da oturum başlarken; ikisinde de 10 saniyelik, vazgeçilebilir geri sayım.
+- **Hatırlatıcı:** "şu kadar dakika sonra" ya da "saat şunda" diye tek seferlik hatırlatma, istersen notuyla.
+  Ekranda gösterir, sesle haber verir ya da ikisini birden yapar; iki ses seçeneği var (yumuşak, belirgin).
+  Aynı anda en çok 3 hatırlatıcı bekleyebilir.
 - **Tepsi simgesi (saatin yanı):** ay simgesi. Hazırken gri; çalışırken altın ve çevresinde kalan süreyi gösteren halka; son dakikalarda bitiş işleminin rengi.
   Menüsünde hızlı başlatma, durdurma, Windows açılışında çalıştırma, dil ve çıkış var.
 - **Diller:** Türkçe, İngilizce, Almanca, Fransızca, İspanyolca.
@@ -43,6 +51,12 @@ Görüntüler programın İngilizce halinden alındı; program Türkçe de çal�
 - Oturum sürerken bilgisayar elle uyutulursa oturum **bitiş işlemi yapılmadan** durur.
 - Pencereyi kapatmak (×) programı kapatmaz, tepsiye gizler. Çıkış tepsi menüsündedir.
 - **Ayarlar (dişli):** programın nerede görüneceği (saatin yanı + görev çubuğu, yalnız saatin yanı, yalnız görev çubuğu), dil ve Windows açılışında çalıştırma. "Yalnız görev çubuğunda" seçiliyken tepsi simgesi yoktur; × oturum sürerken pencereyi küçültür, boştayken programı kapatır.
+- **Hatırlatıcı bilgisayarı uyanık tutmaz.** Zamanı bilgisayar uykudayken ya da program kapalıyken gelen
+  hatırlatıcı, program yeniden çalışınca "kaçırıldı" diye gösterilir. Ekranda gösterilen hatırlatıcı "Tamam"
+  ya da "10 dk ertele" denene kadar durur; sesi birer dakika arayla en çok üç kez çalar. Yalnız sesli
+  hatırlatıcı üçüncü sesten sonra kendiliğinden kapanır.
+- Hatırlatıcının başlangıç süresi Ayarlar'dan değişir (ilk değer 15 dk). Bekleyen hatırlatıcılar
+  `%APPDATA%\Insomnia\reminders.json` dosyasında durur.
 - Windows kapanırken ya da oturum kapatılırken program kapanmayı engellemez.
 - Ayarlar `%APPDATA%\Insomnia\settings.json` dosyasında durur.
 
@@ -96,6 +110,8 @@ olanlar) reddedilir.
   `cancel` (uyarıda vazgeç), `act_now` (uyarıda beklemeden yap), `adjust` (`seconds`; çalışan
   oturuma süre ekler ya da çıkarır), `set_action` (`action`; çalışan oturumun bitişini
   değiştirir), `screen_off`, `cancel_screen_off`, `show`.
+- Hatırlatıcı (1.5.0): `reminder_add` (`minutes`), `reminder_adjust` (`id`, `seconds`), `reminder_remove`
+  (`id`), `reminder_dismiss` (`id`). Bekleyenler ve çalan hatırlatıcı `/durum` yanıtında `reminders` altındadır.
 
 ## Derleme
 
@@ -127,6 +143,7 @@ Bu değişken varken kapatma, yeniden başlatma, uyku, hazırda bekletme ve ekra
 | `main.py` | Başlatıcı; tek kopya denetimi |
 | `insomnia/app.py` | Pencere, tepsi ve zamanlayıcıyı bağlar; arayüzün çağırdığı işlemler |
 | `insomnia/engine.py` | Oturum zamanlayıcısı (tek iş parçacığı) |
+| `insomnia/reminders.py` | Hatırlatıcılar: kayıt, zamanı gelince haber verme, sesler |
 | `insomnia/remote.py` | Kumanda kapısı ve komut satırı istemcisi |
 | `kurulum/insomnia.iss` | Kurulum paketi tarifi (Inno Setup) |
 | `ulanzi/` | Ulanzi D200 eklentisi (Node.js); programdan bağımsız kurulur |
@@ -137,7 +154,7 @@ Bu değişken varken kapatma, yeniden başlatma, uyku, hazırda bekletme ve ekra
 | `insomnia/tray.py`, `insomnia/icons.py` | Tepsi simgesi, menüsü ve ay çizimi |
 | `insomnia/i18n.py` | Beş dilde metinler |
 | `insomnia/ui/index.html` | Arayüz (HTML, CSS, JavaScript tek dosyada) |
-| `tests/` | Zamanlayıcı, ayar ve çeviri sınamaları |
+| `tests/` | Zamanlayıcı, hatırlatıcı, ayar ve çeviri sınamaları |
 | `build.py` | exe derleme |
 
 ## Lisans

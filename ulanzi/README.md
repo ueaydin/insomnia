@@ -5,7 +5,7 @@
 An Ulanzi Studio plugin for controlling Insomnia from the Ulanzi D200 keys. Requires Insomnia 1.2.0 or
 later (the control door arrived in that version).
 
-Version: 1.1.1
+Version: 1.2.0
 
 ![Ulanzi D200 keys](../docs/ulanzi-keys.png)
 
@@ -20,6 +20,21 @@ Version: 1.1.1
 
 The plugin only offers the end actions the installed Insomnia can do (sleep, for example, arrived with Insomnia 1.3.0).
 If the program starts but the control door never appears (Insomnia older than 1.2.0), the keys say "Update".
+
+### Reminder key (Insomnia 1.5.0 or later)
+
+Time − / Time + normally set the keep-awake duration. Press the Reminder key once and all three keys turn
+gold: for a few seconds Time − / Time + set the reminder's time instead.
+
+| State | On the key | 1st press | Time − / Time + | 2nd press |
+| --- | --- | --- | --- | --- |
+| No reminder | A bell and the starting time (Insomnia: Settings → Reminder → Default time) | Opens the time setting | Change it between 1 min and 4 h | Sets the reminder |
+| Waiting | Time left and a progress bar; "+1" if there are more | Asks "Cancel?" | Shorten / extend the time left by 5 min | Deletes it |
+| Ringing | A blinking gold key with the note and "OK" | Dismisses it | — | — |
+
+If no key is pressed for 6 seconds while the time setting is open, it closes without doing anything. A
+reminder set from the key has no note; sound and on-screen choices are the ones last used in the window.
+With Insomnia older than 1.5.0 this key says "Update"; the other keys keep working.
 
 While Insomnia is closed the keys say "Closed". Pressing a key opens the program in the tray; if the key
 was Start or Screen, the request is carried out once the program is up.

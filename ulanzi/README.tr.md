@@ -5,7 +5,7 @@
 Insomnia'yı Ulanzi D200 tuşlarından yönetmek için Ulanzi Studio eklentisi. Insomnia 1.2.0 ve
 sonrası gerekir (kumanda kapısı o sürümde geldi).
 
-Sürüm: 1.1.1
+Sürüm: 1.2.0
 
 ![Ulanzi D200 tuşları](../docs/ulanzi-keys.png)
 
@@ -22,6 +22,21 @@ Tuş yazıları Insomnia'nın diline göre Türkçe ya da İngilizce çıkar (g�
 
 Eklenti yalnız kurulu Insomnia'nın yapabildiği bitiş işlemlerini sunar (örneğin uyku, Insomnia 1.3.0 ile geldi).
 Program açıldığı halde kumanda kapısı gelmezse (Insomnia 1.2.0'dan eskiyse) tuşlarda "Güncelle" yazar.
+
+### Hatırlatıcı tuşu (Insomnia 1.5.0 ve sonrası)
+
+Süre − / Süre + tuşları normalde uyanık tutma süresini ayarlar. Hatırlatıcı tuşuna bir kez basınca üç tuş
+altın rengine döner ve Süre − / Süre + birkaç saniyeliğine hatırlatıcının süresini ayarlar.
+
+| Durum | Tuşta | 1. basış | Süre − / Süre + | 2. basış |
+| --- | --- | --- | --- | --- |
+| Hatırlatıcı yok | Zil ve başlangıç süresi (Insomnia'da Ayarlar → Hatırlatıcı → Varsayılan süre) | Süre ayarını açar | 1 dk … 4 sa arasında değiştirir | Kurar |
+| Bekliyor | Kalan süre ve ilerleme çubuğu; birden çoksa "+1" | "İptal?" diye sorar | Kalan süreyi 5 dk kısaltır / uzatır | Siler |
+| Çalıyor | Yanıp sönen altın tuş, not ve "TAMAM" | Kapatır | — | — |
+
+Süre ayarı açıkken 6 saniye hiçbir tuşa basılmazsa hiçbir şey yapılmadan kapanır. Tuştan kurulan
+hatırlatıcının notu olmaz; ses ve ekranda gösterme seçimi pencerede en son kullanılandır. Insomnia
+1.5.0'dan eskiyse bu tuşta "Güncelle" yazar, öteki tuşlar çalışmaya devam eder.
 
 Insomnia kapalıyken tuşlar "Kapalı" yazar. Bir tuşa basınca program tepside açılır; basılan
 tuş Başlat ya da Ekran ise istek program açılınca yerine getirilir.

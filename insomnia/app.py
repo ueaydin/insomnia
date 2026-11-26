@@ -8,7 +8,7 @@ from ctypes import wintypes
 
 import webview
 
-from . import APP_NAME, __version__, i18n, remote, settings, single_instance, startup
+from . import APP_NAME, __version__, i18n, reminders, remote, settings, single_instance, startup
 from .engine import IDLE, Engine
 from .power import ACTIONS, Power
 from .tray import Tray
@@ -114,6 +114,28 @@ class Api:
     def hide(self):
         self._app.hide_window()
 
+    def reminder_add(self, request):
+        return self._app.reminder_add(request)
+
+    def set_reminder_minutes(self, minutes):
+        return self._app.set_reminder_minutes(minutes)
+
+    def reminder_preview(self, tone):
+        if tone in reminders.TONES:
+            reminders.play(tone)
+
+    def reminder_remove(self, ident):
+        self._app.reminders.remove(ident)
+        return self._app.ui_state()
+
+    def reminder_dismiss(self, ident):
+        self._app.reminders.dismiss(ident)
+        return self._app.ui_state()
+
+    def reminder_snooze(self, ident):
+        self._app.reminders.snooze(ident)
+        return self._app.ui_state()
+
     def log(self, message):
         self._app.log(f"js: {message}")
 
@@ -146,6 +168,9 @@ class App:
             is_running=lambda: self.engine.snapshot()["phase"] != IDLE,
         )
         self.door = remote.Door(self.remote_state, self.remote_command, self.log)
+        self.reminders = reminders.Reminders(
+            on_show=self._on_reminder_show, on_sound=reminders.play, on_notify=self._on_reminder_notify
+        )
 
     # ------------------------------------------------------------------ #
     #  Çalıştırma                                                         #
@@ -168,6 +193,8 @@ class App:
             background_color="#1b1b1d",
         )
         self.window.events.loaded += self._apply_taskbar_button
+        # Pencere hazır olmadan başlamaz: açılışta kaçırılmış hatırlatıcı hemen gösterilmek ister.
+        self.window.events.loaded += self.reminders.start
         self.window.events.before_show += self._allow_windows_shutdown
         self.window.events.closing += self._on_closing
         self.window.events.minimized += lambda: self._set_minimized(True)
@@ -188,12 +215,14 @@ class App:
         finally:
             self._quitting = True
             self.door.stop()
+            self.reminders.stop()
             self.engine.shutdown()
             self.tray.stop()
 
     def quit(self) -> None:
         self._quitting = True
         self.door.stop()
+        self.reminders.stop()
         self.engine.shutdown()
         self.tray.stop()
         try:
@@ -299,9 +328,10 @@ class App:
         if self.window is None:
             return
         if self._visibility == "taskbar":
-            # Tepsi simgesi yok: gizlenen pencereye ulaşılamazdı. Oturum sürüyorsa
-            # yanlışlıkla sonlanmasın diye küçültülür; boştayken × programı kapatır.
-            if self.engine.snapshot()["phase"] != IDLE:
+            # Tepsi simgesi yok: gizlenen pencereye ulaşılamazdı. Oturum sürüyorsa ya da
+            # bekleyen hatırlatıcı varsa yanlışlıkla sonlanmasın diye küçültülür;
+            # boştayken × programı kapatır.
+            if self.engine.snapshot()["phase"] != IDLE or self.reminders.has_any():
                 self.minimize_window()
             else:
                 threading.Timer(0.1, self.quit).start()
@@ -409,12 +439,56 @@ class App:
         self.tray.update(state)
 
     # ------------------------------------------------------------------ #
+    #  Hatırlatıcılar (bkz. reminders.py)                                 #
+    # ------------------------------------------------------------------ #
+
+    def _on_reminder_show(self) -> None:
+        self.power.wake_screen()
+        self.show_window()
+
+    def _on_reminder_notify(self, note: str) -> None:
+        """Yalnız sesli hatırlatıcı: pencere açılmaz, not saatin yanında görünür."""
+        if self._visibility == "taskbar":
+            self.show_window()  # tepsi simgesi yok: baloncuk çıkmaz
+        else:
+            self.tray.notify(note or i18n.t("rem_default"))
+
+    def set_reminder_minutes(self, minutes) -> int:
+        """Yeni hatırlatıcının varsayılan süresi. Geçersiz değer eskisini bozmaz."""
+        with self._lock:
+            if settings.valid_minutes(minutes) and minutes != self.settings["reminder_minutes"]:
+                self.settings["reminder_minutes"] = minutes
+                settings.save(self.settings)
+            return self.settings["reminder_minutes"]
+
+    def reminder_add(self, request) -> dict:
+        if not isinstance(request, dict):
+            return {"ok": False, "error": "bad_request", "state": self.ui_state()}
+        result = self.reminders.add(
+            minutes=request.get("minutes"),
+            clock=request.get("clock"),
+            note=request.get("note"),
+            show=request.get("show"),
+            sound=request.get("sound"),
+            tone=request.get("tone"),
+        )
+        if result.get("ok"):
+            with self._lock:
+                self.settings["reminder_show"] = request["show"]
+                self.settings["reminder_sound"] = request["sound"]
+                self.settings["reminder_tone"] = request["tone"]
+                settings.save(self.settings)
+        result["state"] = self.ui_state()
+        return result
+
+    # ------------------------------------------------------------------ #
     #  Arayüz                                                             #
     # ------------------------------------------------------------------ #
 
     def ui_state(self) -> dict:
         state = self.engine.snapshot()
         state["lang_rev"] = self._lang_rev
+        state["reminders"] = self.reminders.snapshot()
         return state
 
     def ui_init(self) -> dict:
@@ -428,6 +502,10 @@ class App:
                 "infinite": self.settings["infinite"],
                 "sound": self.settings["sound_enabled"],
                 "monitor_off": self.settings["monitor_off"],
+                "rem_show": self.settings["reminder_show"],
+                "rem_sound": self.settings["reminder_sound"],
+                "rem_tone": self.settings["reminder_tone"],
+                "rem_minutes": self.settings["reminder_minutes"],
             },
             "visibility": self._visibility,
             "startup": startup.is_enabled(),
@@ -481,6 +559,8 @@ class App:
             # Eklenti yalnız buradaki işlemleri sunar; ileride eklenenlerle de uyumlu kalır.
             actions=[a for a in ACTIONS if self.power.action_available(a)],
             limits={"min": settings.MIN_MINUTES, "max": settings.MAX_MINUTES},
+            # Hatırlatıcı tuşu için (1.5.0); eklenti bu alan yoksa "Güncelle" gösterir.
+            reminders=dict(self.reminders.snapshot(detail=True), default=self.settings["reminder_minutes"]),
         )
         return state
 
@@ -510,6 +590,20 @@ class App:
             result = engine.request_screen_off()
         elif name == "cancel_screen_off":
             result = engine.cancel_screen_off()
+        elif name == "reminder_add":
+            # Tuştan kurulan hatırlatıcının notu olmaz; ses ve ekran seçimi pencerede son kullanılandır.
+            result = self.reminders.add(
+                minutes=request.get("minutes"),
+                show=self.settings["reminder_show"],
+                sound=self.settings["reminder_sound"],
+                tone=self.settings["reminder_tone"],
+            )
+        elif name == "reminder_adjust":
+            result = self.reminders.adjust(request.get("id"), request.get("seconds"))
+        elif name == "reminder_remove":
+            result = self.reminders.remove(request.get("id"))
+        elif name == "reminder_dismiss":
+            result = self.reminders.dismiss(request.get("id"))
         elif name == "show":
             self.show_window()
             result = {"ok": True}
